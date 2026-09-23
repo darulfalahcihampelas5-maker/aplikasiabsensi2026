@@ -139,7 +139,16 @@ function AttendanceView({
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
-  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedClass, setSelectedClass] = useState(() => {
+    if (classList.length === 1) return classList[0];
+    return '';
+  });
+
+  useEffect(() => {
+    if (classList.length === 1 && selectedClass !== classList[0]) {
+      setSelectedClass(classList[0]);
+    }
+  }, [classList, selectedClass]);
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   
   const [currentRecords, setCurrentRecords] = useState<Record<string, Status>>({});
@@ -314,15 +323,31 @@ function AttendanceView({
               </button>
             </div>
             <div className="relative">
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2.5">Pilih Kelas</label>
+              <div className="flex items-center justify-between mb-2.5">
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest">Pilih Kelas</label>
+                {classList.length === 1 && (
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Kelas Wali
+                  </span>
+                )}
+              </div>
               <button 
-                onClick={() => setIsClassModalOpen(true)}
-                className="w-full px-4 py-3.5 bg-slate-50/50 border-2 border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all outline-none text-left font-semibold flex items-center justify-between group hover:bg-white hover:border-emerald-400"
+                onClick={() => {
+                  if (classList.length > 1) {
+                    setIsClassModalOpen(true);
+                  }
+                }}
+                disabled={classList.length === 1}
+                className="w-full px-4 py-3.5 bg-slate-50/50 border-2 border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all outline-none text-left font-semibold flex items-center justify-between group hover:bg-white hover:border-emerald-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:cursor-not-allowed"
               >
                  <span className={selectedClass ? "text-slate-800 font-bold" : "text-slate-500"}>
                    {selectedClass || "-- Pilih Kelas --"}
                  </span>
-                 <ChevronDown className="w-5 h-5 text-slate-500 group-hover:text-emerald-600 transition-colors" />
+                 {classList.length > 1 ? (
+                   <ChevronDown className="w-5 h-5 text-slate-500 group-hover:text-emerald-600 transition-colors" />
+                 ) : (
+                   <Check className="w-4 h-4 text-emerald-600" />
+                 )}
               </button>
             </div>
          </div>
@@ -1835,11 +1860,34 @@ export default function App() {
     sheetsProcessed?: { name: string; count: number }[];
   } | null>(null);
 
+  // Jika role pengguna adalah 'Wali Kelas', filter agar hanya kelas binaannya yang aktif
+  const isWaliKelas = profileData.role === 'Wali Kelas';
+  const effectiveClassList = useMemo(() => {
+    if (isWaliKelas && profileData.waliKelasClass) {
+      return [profileData.waliKelasClass];
+    }
+    return classList;
+  }, [isWaliKelas, profileData.waliKelasClass, classList]);
+
+  const effectiveStudents = useMemo(() => {
+    if (isWaliKelas && profileData.waliKelasClass) {
+      return students.filter(s => s.class === profileData.waliKelasClass);
+    }
+    return students;
+  }, [isWaliKelas, profileData.waliKelasClass, students]);
+
+  useEffect(() => {
+    if (isWaliKelas && profileData.waliKelasClass && !newStudent.class) {
+      setNewStudent(prev => ({ ...prev, class: profileData.waliKelasClass }));
+    }
+  }, [isWaliKelas, profileData.waliKelasClass, newStudent.class]);
+
   const attendanceStats = useMemo(() => {
+    const targetStudents = isWaliKelas && profileData.waliKelasClass ? effectiveStudents : students;
     if (attendanceSessions.length === 0) return { rate: '100%', attentionCount: 0 };
     
     // Set ID siswa aktif terdaftar
-    const validStudentIds = new Set(students.map(s => s.id));
+    const validStudentIds = new Set(targetStudents.map(s => s.id));
     
     let totalRecords = 0;
     let totalHadir = 0;
@@ -1872,7 +1920,7 @@ export default function App() {
       rate: `${ratePercentage}%`,
       attentionCount: attentionSet.size
     };
-  }, [attendanceSessions, students]);
+  }, [attendanceSessions, students, isWaliKelas, profileData.waliKelasClass, effectiveStudents]);
 
   const studentAbsenceStats = useMemo(() => {
     // Map student ID to their attendance counts
@@ -1924,23 +1972,22 @@ export default function App() {
     const classGroups: Record<string, StudentAbsenceDetail[]> = {};
 
     // Initialize arrays for each class
-    classList.forEach(cls => {
+    effectiveClassList.forEach(cls => {
       classGroups[cls] = [];
     });
 
     // Distribute students to classes and attach counts
     students.forEach(s => {
       const cls = s.class || 'Tanpa Kelas';
-      if (!classGroups[cls]) {
-        classGroups[cls] = [];
+      if (classGroups[cls]) {
+        const c = counts[s.id] || { alpa: 0, sakit: 0, izin: 0, totalNonHadir: 0, alpaDates: [], sakitDates: [], izinDates: [] };
+        classGroups[cls].push({
+          id: s.id,
+          name: s.name,
+          class: cls,
+          ...c
+        });
       }
-      const c = counts[s.id] || { alpa: 0, sakit: 0, izin: 0, totalNonHadir: 0, alpaDates: [], sakitDates: [], izinDates: [] };
-      classGroups[cls].push({
-        id: s.id,
-        name: s.name,
-        class: cls,
-        ...c
-      });
     });
 
     // For each class, find student with max Alpa and max Sakit+Izin
@@ -1996,7 +2043,7 @@ export default function App() {
     result.sort((a, b) => a.className.localeCompare(b.className, 'id-ID', { numeric: true }));
 
     return result;
-  }, [students, attendanceSessions, classList]);
+  }, [students, attendanceSessions, effectiveClassList]);
 
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -2444,7 +2491,8 @@ export default function App() {
   };
 
   const addOrUpdateStudent = async () => {
-    if (!newStudent.name || !newStudent.nisn || !newStudent.class) {
+    const studentClass = (isWaliKelas && profileData.waliKelasClass) ? profileData.waliKelasClass : newStudent.class;
+    if (!newStudent.name || !newStudent.nisn || !studentClass) {
       showToast('Mohon lengkapi semua data siswa (Nama, NISN, Kelas).', 'error');
       return;
     }
@@ -2462,19 +2510,19 @@ export default function App() {
     
     try {
       if (editingStudentId) {
-        const studentData = { ...newStudent, id: editingStudentId, userId: activeAuth.currentUser.uid };
+        const studentData = { ...newStudent, class: studentClass, id: editingStudentId, userId: activeAuth.currentUser.uid };
         // Reset form immediately for fast feel
         setEditingStudentId(null);
-        setNewStudent({ name: '', nisn: '', class: '' });
+        setNewStudent({ name: '', nisn: '', class: (isWaliKelas && profileData.waliKelasClass) ? profileData.waliKelasClass : '' });
         setStudentSuccessModal('edited');
         
         await setDoc(doc(activeDb, 'students', editingStudentId), studentData);
         showToast('Data siswa berhasil diperbarui.', 'success');
       } else {
         const newId = Date.now().toString();
-        const studentData = { ...newStudent, id: newId, userId: activeAuth.currentUser.uid };
+        const studentData = { ...newStudent, class: studentClass, id: newId, userId: activeAuth.currentUser.uid };
         // Reset form immediately
-        setNewStudent(prev => ({ ...prev, name: '', nisn: '' }));
+        setNewStudent(prev => ({ ...prev, name: '', nisn: '', class: (isWaliKelas && profileData.waliKelasClass) ? profileData.waliKelasClass : '' }));
         setStudentSuccessModal('added');
         
         await setDoc(doc(activeDb, 'students', newId), studentData);
@@ -2780,16 +2828,16 @@ export default function App() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {[
                 { 
-                  label: 'Total Siswa', 
-                  value: students.length.toString(), 
+                  label: isWaliKelas && profileData.waliKelasClass ? 'Total Siswa (Kelas)' : 'Total Siswa', 
+                  value: (isWaliKelas && profileData.waliKelasClass ? effectiveStudents.length : students.length).toString(), 
                   icon: Users, 
                   color: 'text-indigo-600', 
                   bg: 'bg-indigo-50/70 border-indigo-100', 
                   shadow: 'hover:shadow-indigo-100/60 hover:border-indigo-300' 
                 },
                 { 
-                  label: 'Total Kelas', 
-                  value: classList.length.toString(), 
+                  label: isWaliKelas && profileData.waliKelasClass ? 'Kelas Perwalian' : 'Total Kelas', 
+                  value: isWaliKelas && profileData.waliKelasClass ? profileData.waliKelasClass : classList.length.toString(), 
                   icon: Building2, 
                   color: 'text-amber-600', 
                   bg: 'bg-amber-50/70 border-amber-100', 
@@ -3210,136 +3258,151 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Kelas */}
               <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
-                <h2 className="text-lg font-bold text-slate-800">Manajemen Kelas</h2>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <input type="text" className="flex-1 p-3 border rounded-xl" placeholder="Nama Kelas (Contoh: X-A)" onKeyDown={(e) => {
-                    if (e.key === 'Enter') { 
-                      const val = e.currentTarget.value.trim(); 
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-slate-800">Manajemen Kelas</h2>
+                  {isWaliKelas && profileData?.waliKelasClass && (
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                      Wali Kelas: {profileData.waliKelasClass}
+                    </span>
+                  )}
+                </div>
+                {isWaliKelas && profileData?.waliKelasClass ? (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs text-emerald-800 font-medium leading-relaxed">
+                    Mode Wali Kelas aktif. Anda dikhususkan untuk mengelola kelas perwalian <b>{profileData.waliKelasClass}</b>. Seluruh kelas lainnya disembunyikan.
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <input type="text" className="flex-1 p-3 border rounded-xl" placeholder="Nama Kelas (Contoh: X-A)" onKeyDown={(e) => {
+                      if (e.key === 'Enter') { 
+                        const val = e.currentTarget.value.trim(); 
+                        if (val) {
+                          if (classList.some(c => c.toLowerCase() === val.toLowerCase())) {
+                            showToast('Kelas "' + val + '" sudah terdaftar', 'error');
+                          } else {
+                            const arr = [...classList, val];
+                            arr.sort((a,b) => a.localeCompare(b, 'id-ID', { numeric: true }));
+                            setClassList(arr); 
+                            
+                            // Explicit cloud save
+                            if (currentUser) {
+                              setDoc(doc(activeDb, 'users', currentUser.uid), { classList: arr }, { merge: true })
+                                .catch(e => console.error("Error saving new class:", e));
+                            }
+                            
+                            e.currentTarget.value = ''; 
+                          }
+                        }
+                      }
+                    }} />
+                    <button className="bg-[#8dc63f] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#7bc025] w-full sm:w-auto" onClick={(e) => {
+                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                      const val = input.value.trim(); 
                       if (val) {
                         if (classList.some(c => c.toLowerCase() === val.toLowerCase())) {
-                          showToast('Kelas "' + val + '" sudah terdaftar', 'error');
+                            showToast('Kelas "' + val + '" sudah terdaftar', 'error');
                         } else {
-                          const arr = [...classList, val];
-                          arr.sort((a,b) => a.localeCompare(b, 'id-ID', { numeric: true }));
-                          setClassList(arr); 
+                          const newList = [...classList, val];
+                          setClassList(newList); 
                           
                           // Explicit cloud save
                           if (currentUser) {
-                            setDoc(doc(activeDb, 'users', currentUser.uid), { classList: arr }, { merge: true })
+                            setDoc(doc(activeDb, 'users', currentUser.uid), { classList: newList }, { merge: true })
                               .catch(e => console.error("Error saving new class:", e));
                           }
                           
-                          e.currentTarget.value = ''; 
+                          input.value = ''; 
                         }
                       }
-                    }
-                  }} />
-                  <button className="bg-[#8dc63f] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#7bc025] w-full sm:w-auto" onClick={(e) => {
-                    const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                    const val = input.value.trim(); 
-                    if (val) {
-                      if (classList.some(c => c.toLowerCase() === val.toLowerCase())) {
-                          showToast('Kelas "' + val + '" sudah terdaftar', 'error');
-                      } else {
-                        const newList = [...classList, val];
-                        setClassList(newList); 
-                        
-                        // Explicit cloud save
-                        if (currentUser) {
-                          setDoc(doc(activeDb, 'users', currentUser.uid), { classList: newList }, { merge: true })
-                            .catch(e => console.error("Error saving new class:", e));
-                        }
-                        
-                        input.value = ''; 
-                      }
-                    }
-                  }}>Tambah</button>
-                </div>
+                    }}>Tambah</button>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-3">
-                  {classList.length === 0 ? <p className="text-slate-600 italic">Belum ada kelas.</p> : classList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => {
-                    const count = students.filter(s => s.class === c).length;
+                  {effectiveClassList.length === 0 ? <p className="text-slate-600 italic">Belum ada kelas.</p> : effectiveClassList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => {
+                    const count = effectiveStudents.filter(s => s.class === c).length;
                     return (
                       <div key={c} className="flex flex-col gap-1 border border-slate-200 bg-slate-50 rounded-2xl p-3">
                         <div className="flex items-center gap-2 justify-between">
                           <span className="font-bold text-slate-700">{c}</span>
                           <span className="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-slate-500 border shadow-sm">{count} Siswa</span>
                         </div>
-                        <div className="flex gap-2 mt-2">
-                          <button 
-                            className="flex-1 text-xs py-1.5 px-3 rounded-lg bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 flex justify-center items-center gap-1 transition-colors"
-                            onClick={() => {
-                              const newName = window.prompt(`Edit nama kelas "${c}":`, c);
-                              if (newName && newName.trim() && newName.trim() !== c) {
-                                const trimmed = newName.trim();
-                                if (classList.some(existing => existing.toLowerCase() === trimmed.toLowerCase())) {
-                                  showToast('Kelas "' + trimmed + '" sudah terdaftar', 'error');
-                                  return;
-                                }
-                                const updatedList = classList.map(existing => existing === c ? trimmed : existing);
-                                updatedList.sort((a,b) => a.localeCompare(b, 'id-ID', { numeric: true }));
-                                setClassList(updatedList);
-                                
-                                const updatedStudents = students.map(s => s.class === c ? { ...s, class: trimmed } : s);
-                                setStudents(updatedStudents);
-                                
-                                const updatedSessions = attendanceSessions.map(sess => sess.className === c ? { ...sess, className: trimmed } : sess);
-                                setAttendanceSessions(updatedSessions);
-
-                                if (currentUser) {
-                                  const batch = writeBatch(activeDb);
-                                  batch.set(doc(activeDb, 'users', currentUser.uid), { classList: updatedList }, { merge: true });
+                        {!isWaliKelas && (
+                          <div className="flex gap-2 mt-2">
+                            <button 
+                              className="flex-1 text-xs py-1.5 px-3 rounded-lg bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 flex justify-center items-center gap-1 transition-colors"
+                              onClick={() => {
+                                const newName = window.prompt(`Edit nama kelas "${c}":`, c);
+                                if (newName && newName.trim() && newName.trim() !== c) {
+                                  const trimmed = newName.trim();
+                                  if (classList.some(existing => existing.toLowerCase() === trimmed.toLowerCase())) {
+                                    showToast('Kelas "' + trimmed + '" sudah terdaftar', 'error');
+                                    return;
+                                  }
+                                  const updatedList = classList.map(existing => existing === c ? trimmed : existing);
+                                  updatedList.sort((a,b) => a.localeCompare(b, 'id-ID', { numeric: true }));
+                                  setClassList(updatedList);
                                   
-                                  updatedStudents.forEach(s => {
-                                    if (s.class === trimmed) {
-                                      batch.set(doc(activeDb, 'students', s.id), { class: trimmed }, { merge: true });
-                                    }
-                                  });
+                                  const updatedStudents = students.map(s => s.class === c ? { ...s, class: trimmed } : s);
+                                  setStudents(updatedStudents);
                                   
-                                  updatedSessions.forEach(sess => {
-                                    if (sess.className === trimmed) {
-                                      batch.set(doc(activeDb, 'attendanceSessions', sess.id), { className: trimmed }, { merge: true });
-                                    }
-                                  });
+                                  const updatedSessions = attendanceSessions.map(sess => sess.className === c ? { ...sess, className: trimmed } : sess);
+                                  setAttendanceSessions(updatedSessions);
 
-                                  batch.commit().then(() => {
-                                    showToast(`Kelas ${c} berhasil diubah menjadi ${trimmed}`, 'success');
-                                  }).catch(e => console.error(e));
+                                  if (currentUser) {
+                                    const batch = writeBatch(activeDb);
+                                    batch.set(doc(activeDb, 'users', currentUser.uid), { classList: updatedList }, { merge: true });
+                                    
+                                    updatedStudents.forEach(s => {
+                                      if (s.class === trimmed) {
+                                        batch.set(doc(activeDb, 'students', s.id), { class: trimmed }, { merge: true });
+                                      }
+                                    });
+                                    
+                                    updatedSessions.forEach(sess => {
+                                      if (sess.className === trimmed) {
+                                        batch.set(doc(activeDb, 'attendanceSessions', sess.id), { className: trimmed }, { merge: true });
+                                      }
+                                    });
+
+                                    batch.commit().then(() => {
+                                      showToast(`Kelas ${c} berhasil diubah menjadi ${trimmed}`, 'success');
+                                    }).catch(e => console.error(e));
+                                  }
                                 }
-                              }
-                            }}
-                          >
-                            <Pencil className="w-3.5 h-3.5" /> Edit
-                          </button>
-                          <button 
-                            className="flex-1 text-xs py-1.5 px-3 rounded-lg bg-red-50 text-red-600 font-bold hover:bg-red-100 flex justify-center items-center gap-1 transition-colors"
-                            onClick={() => {
-                              if (window.confirm(`Hapus kelas "${c}"?\n\nPERINGATAN: ${count > 0 ? `Ada ${count} siswa di kelas ini. Jika dihapus, siswa akan tetap ada tapi kelasnya akan menjadi kosong/tidak ada.` : 'Kelas kosong.'}`)) {
-                                const updatedList = classList.filter(existing => existing !== c);
-                                setClassList(updatedList);
-                                
-                                const updatedStudents = students.map(s => s.class === c ? { ...s, class: '' } : s);
-                                setStudents(updatedStudents);
-
-                                if (currentUser) {
-                                  const batch = writeBatch(activeDb);
-                                  batch.set(doc(activeDb, 'users', currentUser.uid), { classList: updatedList }, { merge: true });
+                              }}
+                            >
+                              <Pencil className="w-3.5 h-3.5" /> Edit
+                            </button>
+                            <button 
+                              className="flex-1 text-xs py-1.5 px-3 rounded-lg bg-red-50 text-red-600 font-bold hover:bg-red-100 flex justify-center items-center gap-1 transition-colors"
+                              onClick={() => {
+                                if (window.confirm(`Hapus kelas "${c}"?\n\nPERINGATAN: ${count > 0 ? `Ada ${count} siswa di kelas ini. Jika dihapus, siswa akan tetap ada tapi kelasnya akan menjadi kosong/tidak ada.` : 'Kelas kosong.'}`)) {
+                                  const updatedList = classList.filter(existing => existing !== c);
+                                  setClassList(updatedList);
                                   
-                                  students.forEach(s => {
-                                    if (s.class === c) {
-                                      batch.set(doc(activeDb, 'students', s.id), { class: '' }, { merge: true });
-                                    }
-                                  });
+                                  const updatedStudents = students.map(s => s.class === c ? { ...s, class: '' } : s);
+                                  setStudents(updatedStudents);
 
-                                  batch.commit()
-                                    .then(() => showToast(`Kelas ${c} berhasil dihapus`, 'success'))
-                                    .catch(e => console.error(e));
+                                  if (currentUser) {
+                                    const batch = writeBatch(activeDb);
+                                    batch.set(doc(activeDb, 'users', currentUser.uid), { classList: updatedList }, { merge: true });
+                                    
+                                    students.forEach(s => {
+                                      if (s.class === c) {
+                                        batch.set(doc(activeDb, 'students', s.id), { class: '' }, { merge: true });
+                                      }
+                                    });
+
+                                    batch.commit()
+                                      .then(() => showToast(`Kelas ${c} berhasil dihapus`, 'success'))
+                                      .catch(e => console.error(e));
+                                  }
                                 }
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" /> Hapus
-                          </button>
-                        </div>
+                              }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Hapus
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -3369,9 +3432,14 @@ export default function App() {
                 <div className="grid grid-cols-1 gap-4">
                   <input type="text" className="p-3 border rounded-xl" placeholder="Nama Lengkap" value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} />
                   <input type="text" className="p-3 border rounded-xl" placeholder="NISN" value={newStudent.nisn} onChange={(e) => setNewStudent({...newStudent, nisn: e.target.value.replace(/\D/g, '')})} />
-                  <select className="p-3 bg-white border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-[#8dc63f]" value={newStudent.class} onChange={(e) => setNewStudent({...newStudent, class: e.target.value})}>
-                    <option value="">Pilih Kelas</option>
-                    {classList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => <option key={c} value={c}>{c}</option>)}
+                  <select 
+                    className="p-3 bg-white border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-[#8dc63f] disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed" 
+                    value={isWaliKelas && profileData?.waliKelasClass ? profileData.waliKelasClass : newStudent.class} 
+                    disabled={isWaliKelas && !!profileData?.waliKelasClass}
+                    onChange={(e) => setNewStudent({...newStudent, class: e.target.value})}
+                  >
+                    {!isWaliKelas && <option value="">Pilih Kelas</option>}
+                    {effectiveClassList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <button className="bg-[#8dc63f] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#7bc025] w-full" onClick={addOrUpdateStudent}>{editingStudentId ? 'Update' : 'Simpan'}</button>
@@ -3380,8 +3448,17 @@ export default function App() {
 
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-lg font-bold text-slate-800">Daftar Siswa</h2>
-                {students.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800">
+                    Daftar Siswa {isWaliKelas && profileData?.waliKelasClass ? `Kelas ${profileData.waliKelasClass}` : ''}
+                  </h2>
+                  {isWaliKelas && profileData?.waliKelasClass && (
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                      Menampilkan {effectiveStudents.length} siswa binaan di kelas Anda.
+                    </p>
+                  )}
+                </div>
+                {effectiveStudents.length > 0 && !isWaliKelas && (
                   <button 
                     onClick={() => setResetModalType('clear_all_students')} 
                     className="w-full sm:w-auto bg-rose-50 text-rose-600 border border-rose-200 font-bold py-2 px-4 rounded-xl hover:bg-rose-100 transition-colors text-xs flex items-center justify-center gap-2"
@@ -3392,8 +3469,12 @@ export default function App() {
               </div>
               {!studentsLoaded ? (
                 <p className="text-slate-600 text-center py-6">Memuat data...</p>
-              ) : students.length === 0 ? (
-                <p className="text-slate-600 text-center py-6">Belum ada siswa.</p>
+              ) : effectiveStudents.length === 0 ? (
+                <p className="text-slate-600 text-center py-6">
+                  {isWaliKelas && profileData?.waliKelasClass 
+                    ? `Belum ada siswa terdaftar di kelas ${profileData.waliKelasClass}.` 
+                    : 'Belum ada siswa.'}
+                </p>
               ) : (
                 <div className="overflow-auto max-h-[600px] border border-slate-100 rounded-xl scrollbar-thin">
                   <table className="w-full min-w-[650px] text-left border-collapse">
@@ -3407,7 +3488,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {students.map((student, i) => (
+                      {effectiveStudents.map((student, i) => (
                         <tr key={student.id} className={`border-b last:border-b-0 hover:bg-slate-50/80 transition-colors ${deletingStudentId === student.id ? 'opacity-50 bg-rose-50' : ''}`}>
                           <td className="p-4 text-slate-700">{i + 1}</td>
                            <td className="p-4 font-bold text-slate-900">
@@ -3444,8 +3525,8 @@ export default function App() {
       case 'attendance':
         return (
           <AttendanceView
-            classList={classList}
-            students={students}
+            classList={effectiveClassList}
+            students={effectiveStudents}
             attendanceSessions={attendanceSessions}
             showToast={showToast}
             activeDb={activeDb}
@@ -3456,8 +3537,8 @@ export default function App() {
       case 'reports':
         return (
           <ReportsView 
-            classList={classList}
-            students={students}
+            classList={effectiveClassList}
+            students={effectiveStudents}
             attendanceSessions={attendanceSessions}
             profileData={profileData}
             activeDb={activeDb}
@@ -3470,8 +3551,8 @@ export default function App() {
       case 'homeroom_report':
         return (
           <ReportsView 
-            classList={classList}
-            students={students}
+            classList={effectiveClassList}
+            students={effectiveStudents}
             attendanceSessions={attendanceSessions}
             profileData={profileData}
             activeDb={activeDb}

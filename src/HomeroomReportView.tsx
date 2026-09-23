@@ -22,7 +22,8 @@ import {
   Search,
   Check,
   Plus,
-  Eye
+  Eye,
+  Sliders
 } from 'lucide-react';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, serverTimestamp, Firestore } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
@@ -419,7 +420,29 @@ export default function HomeroomReportView({
   showToast,
   profileData
 }: HomeroomReportViewProps) {
-  const [selectedClass, setSelectedClass] = useState<string>(() => profileData?.waliKelasClass || '');
+  // Jika role pengguna adalah Wali Kelas, hilangkan kelas lain dan hanya tampilkan kelas binaannya
+  const isWaliKelas = profileData?.role === 'Wali Kelas';
+  const effectiveClassList = useMemo(() => {
+    if (isWaliKelas && profileData?.waliKelasClass) {
+      return [profileData.waliKelasClass];
+    }
+    return classList;
+  }, [isWaliKelas, profileData?.waliKelasClass, classList]);
+
+  const [selectedClass, setSelectedClass] = useState<string>(() => {
+    if (isWaliKelas && profileData?.waliKelasClass) {
+      return profileData.waliKelasClass;
+    }
+    return profileData?.waliKelasClass || classList[0] || '';
+  });
+
+  useEffect(() => {
+    if (isWaliKelas && profileData?.waliKelasClass) {
+      setSelectedClass(profileData.waliKelasClass);
+    } else if (!selectedClass && effectiveClassList.length > 0) {
+      setSelectedClass(effectiveClassList[0]);
+    }
+  }, [isWaliKelas, profileData?.waliKelasClass, effectiveClassList, selectedClass]);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [terlambat, setTerlambat] = useState<string>('Tidak Pernah');
@@ -434,6 +457,7 @@ export default function HomeroomReportView({
   const currentMonth = selectedMonth;
   const [leftSignerRole, setLeftSignerRole] = useState<HomeroomSignerRoleType>('kepala_sekolah');
   const [midSignerRole, setMidSignerRole] = useState<HomeroomSignerRoleType>('none');
+  const [kopSuratHeight, setKopSuratHeight] = useState<number>(45); // Tinggi kop surat (mm) - hemat ruang vertikal kertas landscape
 
   // Preview Modal States
   const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
@@ -1037,17 +1061,20 @@ export default function HomeroomReportView({
     }
   };
 
-  const generateHomeroomPDFDocument = (): { doc: jsPDF; fileName: string } => {
+  const generateHomeroomPDFDocument = (overrideHeight?: number): { doc: jsPDF; fileName: string } => {
     const doc = new jsPDF({ orientation: 'landscape', format: 'legal' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const marginX = 14; // Standar margin kiri & kanan (mm)
     
-    // Header - Kop Surat Standar (Presisi, Simetris & Terkunci Ratio 1450:341 agar tidak meleyot)
-    const imgHeight = 32; // Standar tinggi kop surat dinas/sekolah (3.2 cm)
-    const imgRatio = 1450 / 341;
-    const imgWidth = Math.round((imgHeight * imgRatio) * 100) / 100; // 136.07 mm
-    const imgX = (pageWidth - imgWidth) / 2; // Presisi & simetris di tengah
-    const imgY = 8;
+    // Header - Kop Surat Landscape, Presisi & Simetris
+    // Posisi tepat 2 spasi dari atas kertas (2 x 12pt line spacing ≈ 8.5 mm)
+    // Panjang dari kanan ke kiri dibuat presisi dan simetris menyentuh margin kiri & kanan (14 mm)
+    const selectedHeight = overrideHeight || kopSuratHeight || 45;
+    const imgHeight = selectedHeight;
+    const imgWidth = pageWidth - (marginX * 2);
+    const imgX = marginX; // Presisi dan simetris tepat di x = 14 mm
+    const imgY = 8.5; // Tepat 2 spasi dari batas atas kertas
     
     try {
       doc.addImage(kopSuratBase64, 'PNG', imgX, imgY, imgWidth, imgHeight);
@@ -1138,6 +1165,7 @@ export default function HomeroomReportView({
 
     const statsTableOptions = {
       startY: startY + 33,
+      margin: { left: marginX, right: marginX },
       head: [statsHeaders],
       body: statsBody,
       theme: 'grid' as const,
@@ -1196,6 +1224,7 @@ export default function HomeroomReportView({
     
     const autoTableOptions = {
       startY: statsFinalY + 12,
+      margin: { left: marginX, right: marginX },
       head: [headers],
       body: finalTable2Body,
       theme: 'grid' as const,
@@ -1301,6 +1330,7 @@ export default function HomeroomReportView({
 
     const recapTableOptions = {
       startY: finalY2 + 12,
+      margin: { left: marginX, right: marginX },
       head: [recapHeaders],
       body: recapBody,
       theme: 'grid' as const,
@@ -1418,12 +1448,15 @@ export default function HomeroomReportView({
     }, 200);
   };
 
-  const handlePreviewPDF = () => {
+  const handlePreviewPDF = (overrideHeight?: number) => {
     setIsPreviewLoading(true);
     setTimeout(() => {
       try {
-        const { doc, fileName } = generateHomeroomPDFDocument();
+        const { doc, fileName } = generateHomeroomPDFDocument(overrideHeight);
         const blob = doc.output('blob');
+        if (previewPdfUrl) {
+          URL.revokeObjectURL(previewPdfUrl);
+        }
         const url = URL.createObjectURL(blob);
         setPreviewPdfUrl(url);
         setPreviewFileName(fileName);
@@ -1434,7 +1467,7 @@ export default function HomeroomReportView({
       } finally {
         setIsPreviewLoading(false);
       }
-    }, 200);
+    }, 150);
   };
 
   const handleClosePreview = () => {
@@ -1545,20 +1578,36 @@ export default function HomeroomReportView({
 
           {/* Pilih Kelas */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-amber-500" />
-              Pilih Kelas
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-amber-500" />
+                Pilih Kelas
+              </label>
+              {isWaliKelas && profileData?.waliKelasClass && (
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  Kelas Binaan Anda
+                </span>
+              )}
+            </div>
             <select 
               value={selectedClass} 
               onChange={(e) => setSelectedClass(e.target.value)}
-              className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 font-bold focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-xs"
+              disabled={isWaliKelas && !!profileData?.waliKelasClass}
+              className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 font-bold focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-xs disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed"
             >
-              <option value="" disabled>-- Pilih Kelas --</option>
-              {classList.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
-              ))}
+              {effectiveClassList.length === 0 ? (
+                <option value="" disabled>-- Tidak ada kelas --</option>
+              ) : (
+                effectiveClassList.map(cls => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))
+              )}
             </select>
+            {isWaliKelas && !profileData?.waliKelasClass && (
+              <p className="text-[10px] text-amber-600 font-medium mt-1">
+                * Anda berstatus Wali Kelas, silakan pilih Kelas yang Diwalikan di menu Profil Pengguna.
+              </p>
+            )}
           </div>
 
           {/* Nama Lengkap Siswa */}
@@ -2297,8 +2346,8 @@ export default function HomeroomReportView({
               </span>
             </div>
 
-            {/* Grid 3 Kolom Simetris & Presisi untuk Dropdown */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Grid 4 Kolom Simetris & Presisi untuk Dropdown */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Kolom 1: Filter Cakupan Siswa */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
@@ -2323,11 +2372,35 @@ export default function HomeroomReportView({
                 </div>
               </div>
 
-              {/* Kolom 2: Tanda Tangan Kiri */}
+              {/* Kolom 2: Pengaturan Tinggi Kop Surat */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-amber-600" />
+                  Tinggi Kop Surat (Presisi)
+                </label>
+                <div className="relative">
+                  <select
+                    value={kopSuratHeight}
+                    onChange={(e) => {
+                      const newH = Number(e.target.value);
+                      setKopSuratHeight(newH);
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all shadow-sm"
+                  >
+                    <option value={38}>38 mm (Sangat Rendah / Kompak)</option>
+                    <option value={45}>45 mm (Rendah Proporsional - Rekomendasi)</option>
+                    <option value={50}>50 mm (Sedang Standar)</option>
+                    <option value={58}>58 mm (Sedang Lebih Lebar)</option>
+                    <option value={75}>75 mm (Lebar Penuh Kertas)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Kolom 3: Tanda Tangan Kiri */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-slate-500" />
-                  1. Tanda Tangan Kiri (Mengetahui 1)
+                  1. Ttd Kiri (Mengetahui 1)
                 </label>
                 <div className="relative">
                   <select
@@ -2346,11 +2419,11 @@ export default function HomeroomReportView({
                 </div>
               </div>
 
-              {/* Kolom 3: Tanda Tangan Tengah */}
+              {/* Kolom 4: Tanda Tangan Tengah */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-slate-500" />
-                  2. Tanda Tangan Tengah (Mengetahui 2)
+                  2. Ttd Tengah (Mengetahui 2)
                 </label>
                 <div className="relative">
                   <select
@@ -2375,7 +2448,7 @@ export default function HomeroomReportView({
               {/* Tombol Preview Sebelum Cetak */}
               <button
                 type="button"
-                onClick={handlePreviewPDF}
+                onClick={() => handlePreviewPDF()}
                 disabled={isPreviewLoading || isExporting}
                 className="w-full sm:w-1/2 max-w-sm px-6 py-3 bg-white hover:bg-amber-50 text-amber-700 border-2 border-amber-300 hover:border-amber-400 rounded-xl font-bold flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] shadow-sm hover:shadow text-xs sm:text-sm disabled:opacity-50"
               >
@@ -2417,7 +2490,7 @@ export default function HomeroomReportView({
               className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]"
             >
               {/* Modal Header */}
-              <div className="px-5 py-4 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-slate-200 flex items-center justify-between">
+              <div className="px-5 py-3.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-amber-500 text-white rounded-xl shadow-sm">
                     <FileText className="w-5 h-5" />
@@ -2434,14 +2507,38 @@ export default function HomeroomReportView({
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleClosePreview}
-                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all"
-                  title="Tutup Pratinjau"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+
+                <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Pengaturan Cepat Tinggi Kop di Modal Preview */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-white/90 border border-slate-200 px-2.5 py-1.5 rounded-xl shadow-sm">
+                    <Sliders className="w-3.5 h-3.5 text-amber-600" />
+                    <span className="text-[11px] sm:text-xs font-bold text-slate-700 whitespace-nowrap">Tinggi Kop:</span>
+                    <select
+                      value={kopSuratHeight}
+                      onChange={(e) => {
+                        const newH = Number(e.target.value);
+                        setKopSuratHeight(newH);
+                        handlePreviewPDF(newH);
+                      }}
+                      className="px-2 py-0.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    >
+                      <option value={38}>38 mm (Sangat Rendah)</option>
+                      <option value={45}>45 mm (Rendah Rekomendasi)</option>
+                      <option value={50}>50 mm (Sedang Proporsional)</option>
+                      <option value={58}>58 mm (Sedang Lebih Lebar)</option>
+                      <option value={75}>75 mm (Lebar Penuh)</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleClosePreview}
+                    className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all"
+                    title="Tutup Pratinjau"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               {/* Modal Body: PDF Viewer */}

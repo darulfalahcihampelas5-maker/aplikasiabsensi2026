@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import * as XLSX from 'xlsx-js-style';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -94,8 +94,27 @@ export default function ReportsView({
   initialFrame = 'presensi',
   onNavigateToProfile
 }: ReportsViewProps) {
+  const isWaliKelas = profileData?.role === 'Wali Kelas';
+  const effectiveClassList = useMemo(() => {
+    if (isWaliKelas && profileData?.waliKelasClass) {
+      return [profileData.waliKelasClass];
+    }
+    return classList;
+  }, [isWaliKelas, profileData?.waliKelasClass, classList]);
+
   const [activeReportFrame, setActiveReportFrame] = useState<'presensi' | 'wali_kelas'>(initialFrame);
-  const [selectedClass, setSelectedClass] = useState<string>('');
+  const [selectedClass, setSelectedClass] = useState<string>(() => {
+    if (isWaliKelas && profileData?.waliKelasClass) {
+      return profileData.waliKelasClass;
+    }
+    return '';
+  });
+
+  useEffect(() => {
+    if (isWaliKelas && profileData?.waliKelasClass) {
+      setSelectedClass(profileData.waliKelasClass);
+    }
+  }, [isWaliKelas, profileData?.waliKelasClass]);
   const [reportType, setReportType] = useState<'daily' | 'monthly' | 'summary' | 'custom'>('summary');
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const [selectedDailyDate, setSelectedDailyDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
@@ -653,17 +672,20 @@ export default function ReportsView({
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         
-        // PDF Header - Kop Surat Formal with Custom Image
+        // PDF Header - Kop Surat Formal dengan Gambar Presisi & Simetris
+        // Posisi tepat 2 spasi dari atas kertas (2 x 12pt line spacing ≈ 8.5 mm)
+        const imgX = 14;
+        const imgY = 8.5; // Tepat 2 spasi dari tepi atas kertas
         const imgWidth = pageWidth - 28;
-        const imgHeight = imgWidth * (341 / 1450);
+        const imgHeight = isLandscape ? 45 : (imgWidth * (341 / 1450));
         
         try {
-          doc.addImage(kopSuratBase64, 'PNG', 14, 10, imgWidth, imgHeight);
+          doc.addImage(kopSuratBase64, 'PNG', imgX, imgY, imgWidth, imgHeight);
         } catch (e) {
           console.error("Failed to add custom header image", e);
         }
         
-        const startY = 10 + imgHeight + 10; // margin top + image + spacing
+        const startY = imgY + imgHeight + 8; // margin top (2 spasi) + image + spacing
 
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
@@ -1106,7 +1128,7 @@ export default function ReportsView({
           )}
 
           <HomeroomReportView
-            classList={classList}
+            classList={effectiveClassList}
             students={students}
             attendanceSessions={attendanceSessions}
             activeDb={activeDb}
@@ -1158,16 +1180,30 @@ export default function ReportsView({
             
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Pilih Kelas</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Kelas</label>
+                  {isWaliKelas && profileData?.waliKelasClass && (
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                      Kelas Binaan
+                    </span>
+                  )}
+                </div>
                 <select 
-                  className="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors"
+                  className="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed"
                   value={selectedClass}
                   onChange={(e) => setSelectedClass(e.target.value)}
+                  disabled={isWaliKelas && !!profileData?.waliKelasClass}
                 >
-                  <option value="">-- Pilih Kelas --</option>
-                  <option value="all">Semua Kelas</option>
-                  {classList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => <option key={c} value={c}>{c}</option>)}
+                  {!isWaliKelas && <option value="">-- Pilih Kelas --</option>}
+                  {!isWaliKelas && <option value="all">Semua Kelas</option>}
+                  {effectiveClassList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
+                {isWaliKelas && profileData?.waliKelasClass && (
+                  <p className="text-[11px] text-emerald-800 font-bold mt-1.5 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    Hanya menampilkan kelas binaan Anda ({profileData.waliKelasClass})
+                  </p>
+                )}
               </div>
 
               {selectedClass && (
