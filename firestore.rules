@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Students collection rules: allow authenticated users as queries are client-filtered
+    match /students/{studentId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Attendance sessions collection rules: allow authenticated users as queries are client-filtered
+    match /attendanceSessions/{sessionId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Users collection rules: allow authenticated users
+    match /users/{userId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Custom accounts directory (used by main index to route users)
+    match /custom_accounts/{accountId} {
+      allow read, write: if true;
+    }
+
+    // Register tokens for new users
+    match /register_tokens/{tokenId} {
+      allow read, write: if true;
+    }
+    // student_followups collection rules
+    match /student_followups/{followupId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // homeroom_monthly_recaps collection rules
+    match /homeroom_monthly_recaps/{recapId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

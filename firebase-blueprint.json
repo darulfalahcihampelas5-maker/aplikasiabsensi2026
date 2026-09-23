@@ -1,0 +1,167 @@
+{
+  "entities": {
+    "student": {
+      "title": "Student",
+      "description": "Information about a student registered at SMAN 1 Cililin",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique student identifier"
+        },
+        "nisn": {
+          "type": "string",
+          "description": "Student National Identification Number (Nomor Induk Siswa Nasional)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the student"
+        },
+        "class": {
+          "type": "string",
+          "description": "Class of the student (e.g., XI-MIPA-1)"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID of this student record"
+        }
+      },
+      "required": ["id", "nisn", "name", "class", "userId"]
+    },
+    "attendanceSession": {
+      "title": "Attendance Session",
+      "description": "Attendance list and statuses for a specific class on a specific date",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique session identifier formatted as date_class"
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date of the attendance check in YYYY-MM-DD format"
+        },
+        "className": {
+          "type": "string",
+          "description": "Name of the class"
+        },
+        "meetingNumber": {
+          "type": "integer",
+          "description": "The meeting/session number"
+        },
+        "records": {
+          "type": "object",
+          "description": "Map of student IDs to their attendance status"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID of this attendance session"
+        }
+      },
+      "required": ["id", "date", "className", "meetingNumber", "records", "userId"]
+    },
+    "user": {
+      "title": "User",
+      "description": "Information about a registered system user",
+      "type": "object",
+      "properties": {
+        "photoURL": {
+          "type": "string",
+          "description": "Base64 encoded avatar image of the user"
+        }
+      }
+    },
+    "student_followup": {
+      "title": "Student Followup",
+      "description": "Followup and counseling log for an individual student",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "className": { "type": "string" },
+        "terlambat": { "type": "string" },
+        "permasalahan": { "type": "string" },
+        "tindakLanjut": { "type": "string" },
+        "status": { "type": "string" },
+        "month": { "type": "string" },
+        "date": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["studentId", "className", "permasalahan", "tindakLanjut", "userId"]
+    },
+    "homeroom_monthly_recap": {
+      "title": "Homeroom Monthly Recap",
+      "description": "Monthly recapitulation of homeroom teacher follow-up actions and counseling activities",
+      "type": "object",
+      "properties": {
+        "className": { "type": "string" },
+        "month": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "pembinaanMurid": { "type": "integer" },
+        "kontakOrangTua": { "type": "integer" },
+        "koordinasiBK": { "type": "integer" },
+        "koordinasiGuruWali": { "type": "integer" },
+        "koordinasiGuruMapel": { "type": "integer" },
+        "kasusBelumSelesai": { "type": "integer" },
+        "keterangan": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["className", "month", "userId"]
+    },
+    "custom_account": {
+      "title": "Custom Account",
+      "description": "Shared directory record to support credential recovery and custom database connection logic",
+      "type": "object",
+      "properties": {
+        "fullname": {
+          "type": "string",
+          "description": "Full name of the user"
+        },
+        "username": {
+          "type": "string",
+          "description": "Email identifier used for authentication login"
+        },
+        "password": {
+          "type": "string",
+          "description": "Plaintext recovery copy of password strictly for forgot account visual lookups"
+        },
+        "configText": {
+          "type": "string",
+          "description": "Raw string Firebase web configurations script or JSON"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when this account registration occurred"
+        }
+      },
+      "required": ["fullname", "username", "password", "configText"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "student",
+      "description": "Collection of SMAN 1 Cililin students"
+    },
+    "/attendanceSessions/{sessionId}": {
+      "schema": "attendanceSession",
+      "description": "Collection of attendance sessions and checks for classrooms"
+    },
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "Collection of user preferences and bios"
+    },
+    "/student_followups/{followupId}": {
+      "schema": "student_followup",
+      "description": "Collection of individual student followup reports"
+    },
+    "/homeroom_monthly_recaps/{recapId}": {
+      "schema": "homeroom_monthly_recap",
+      "description": "Collection of homeroom monthly recapitulation reports"
+    },
+    "/custom_accounts/{accountId}": {
+      "schema": "custom_account",
+      "description": "Collection mapping usernames to custom Firebase parameters and user lookups"
+    }
+  }
+}

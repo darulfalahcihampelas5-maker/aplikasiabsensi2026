@@ -1,0 +1,6 @@
+ {
+  "name": "My Kaguci App",
+  "description": "Guna Wulang Gapuraning Rahayu - Aplikasi Absensi Siswa SMA Negeri 1 Cililin dengan integrasi Google Sheets.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
