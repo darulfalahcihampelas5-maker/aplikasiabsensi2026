@@ -457,7 +457,7 @@ export default function HomeroomReportView({
   const currentMonth = selectedMonth;
   const [leftSignerRole, setLeftSignerRole] = useState<HomeroomSignerRoleType>('kepala_sekolah');
   const [midSignerRole, setMidSignerRole] = useState<HomeroomSignerRoleType>('none');
-  const [kopSuratHeight, setKopSuratHeight] = useState<number>(45); // Tinggi kop surat (mm) - hemat ruang vertikal kertas landscape
+  const [kopSuratHeight, setKopSuratHeight] = useState<number>(52); // Tinggi kop surat ideal (mm) - proporsional, logo bulat sempurna tidak meleyot / gepeng
 
   // Preview Modal States
   const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
@@ -1067,10 +1067,10 @@ export default function HomeroomReportView({
     const pageHeight = doc.internal.pageSize.getHeight();
     const marginX = 14; // Standar margin kiri & kanan (mm)
     
-    // Header - Kop Surat Landscape, Presisi & Simetris
+    // Header - Kop Surat Landscape, Presisi, Simetris & Proporsional
     // Posisi tepat 2 spasi dari atas kertas (2 x 12pt line spacing ≈ 8.5 mm)
-    // Panjang dari kanan ke kiri dibuat presisi dan simetris menyentuh margin kiri & kanan (14 mm)
-    const selectedHeight = overrideHeight || kopSuratHeight || 45;
+    // Tinggi 52 mm menghasilkan proporsi logo dan tipografi yang alami tanpa distorsi/meleyot (tidak gepeng)
+    const selectedHeight = overrideHeight || kopSuratHeight || 52;
     const imgHeight = selectedHeight;
     const imgWidth = pageWidth - (marginX * 2);
     const imgX = marginX; // Presisi dan simetris tepat di x = 14 mm
@@ -2387,11 +2387,11 @@ export default function HomeroomReportView({
                     }}
                     className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all shadow-sm"
                   >
-                    <option value={38}>38 mm (Sangat Rendah / Kompak)</option>
-                    <option value={45}>45 mm (Rendah Proporsional - Rekomendasi)</option>
-                    <option value={50}>50 mm (Sedang Standar)</option>
-                    <option value={58}>58 mm (Sedang Lebih Lebar)</option>
-                    <option value={75}>75 mm (Lebar Penuh Kertas)</option>
+                    <option value={45}>45 mm (Kompak)</option>
+                    <option value={50}>50 mm (Sedang Proporsional)</option>
+                    <option value={52}>52 mm (Presisi Alami - Rekomendasi)</option>
+                    <option value={56}>56 mm (Tinggi Maksimal Proporsional)</option>
+                    <option value={60}>60 mm (Lebar & Tinggi Maksimal)</option>
                   </select>
                 </div>
               </div>
@@ -2522,11 +2522,11 @@ export default function HomeroomReportView({
                       }}
                       className="px-2 py-0.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500"
                     >
-                      <option value={38}>38 mm (Sangat Rendah)</option>
-                      <option value={45}>45 mm (Rendah Rekomendasi)</option>
+                      <option value={45}>45 mm (Kompak)</option>
                       <option value={50}>50 mm (Sedang Proporsional)</option>
-                      <option value={58}>58 mm (Sedang Lebih Lebar)</option>
-                      <option value={75}>75 mm (Lebar Penuh)</option>
+                      <option value={52}>52 mm (Presisi Alami - Rekomendasi)</option>
+                      <option value={56}>56 mm (Tinggi Maksimal Proporsional)</option>
+                      <option value={60}>60 mm (Lebar & Tinggi Maksimal)</option>
                     </select>
                   </div>
 

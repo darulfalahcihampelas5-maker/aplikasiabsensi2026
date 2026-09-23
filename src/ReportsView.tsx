@@ -677,7 +677,7 @@ export default function ReportsView({
         const imgX = 14;
         const imgY = 8.5; // Tepat 2 spasi dari tepi atas kertas
         const imgWidth = pageWidth - 28;
-        const imgHeight = isLandscape ? 45 : (imgWidth * (341 / 1450));
+        const imgHeight = isLandscape ? 52 : (imgWidth * (341 / 1450));
         
         try {
           doc.addImage(kopSuratBase64, 'PNG', imgX, imgY, imgWidth, imgHeight);
