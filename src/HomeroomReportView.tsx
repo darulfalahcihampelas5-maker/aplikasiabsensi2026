@@ -1094,7 +1094,7 @@ export default function HomeroomReportView({
     let displayPeriod = '';
     if (startDate && endDate) {
       displayPeriod = `${formatIndoDate(startDate)} s.d ${formatIndoDate(endDate)}`;
-    } else if (printScope === 'all_months') {
+    } else if ((printScope as string) === 'all_months') {
       displayPeriod = 'Seluruh Periode';
     } else {
       const [yearStr, monthStr] = exportMonth.split('-');

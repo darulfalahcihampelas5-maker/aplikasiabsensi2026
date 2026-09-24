@@ -11,15 +11,16 @@ import {
   Loader2,
   FileDown,
   ClipboardList,
-  UserCheck,
-  ArrowRight,
-  Calendar
+  Calendar,
+  Pencil,
+  Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { kopSuratBase64 } from './kop-surat-b64';
 import HomeroomReportView from './HomeroomReportView';
+import StudentGradesView from './StudentGradesView';
 import { compareClasses, compareStudentsByClass } from './classSortUtils';
 import type { Firestore } from 'firebase/firestore';
 import type { Auth } from 'firebase/auth';
@@ -104,6 +105,7 @@ export default function ReportsView({
   }, [isWaliKelas, profileData?.waliKelasClass, classList]);
 
   const [activeReportFrame, setActiveReportFrame] = useState<'presensi' | 'wali_kelas'>(initialFrame);
+  const [gradesSubTab, setGradesSubTab] = useState<'input' | 'preview'>('input');
   const [selectedClass, setSelectedClass] = useState<string>(() => {
     if (isWaliKelas && profileData?.waliKelasClass) {
       return profileData.waliKelasClass;
@@ -1072,62 +1074,66 @@ export default function ReportsView({
       {/* Switcher Header */}
       <div className="bg-slate-100 p-2 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col sm:flex-row items-stretch gap-2.5">
         <button
-          onClick={() => setActiveReportFrame('presensi')}
+          onClick={() => {
+            if (profileData?.role === 'Wali Kelas') {
+              setActiveReportFrame('presensi');
+            } else {
+              setGradesSubTab('input');
+              setActiveReportFrame('wali_kelas');
+            }
+          }}
           className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-black text-sm transition-all cursor-pointer ${
-            activeReportFrame === 'presensi'
+            (profileData?.role === 'Wali Kelas' ? activeReportFrame === 'presensi' : activeReportFrame === 'wali_kelas' && gradesSubTab === 'input')
               ? 'bg-[#8dc63f] text-white shadow-md shadow-[#8dc63f]/30'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
         >
-          <FileSpreadsheet className="w-5 h-5" />
-          <span>Laporan Presensi Siswa</span>
+          {profileData?.role === 'Wali Kelas' ? (
+            <>
+              <FileSpreadsheet className="w-5 h-5" />
+              <span>Laporan Presensi Siswa</span>
+            </>
+          ) : (
+            <>
+              <Pencil className="w-5 h-5" />
+              <span>Input Nilai</span>
+            </>
+          )}
         </button>
+
         <button
-          onClick={() => setActiveReportFrame('wali_kelas')}
+          onClick={() => {
+            if (profileData?.role === 'Wali Kelas') {
+              setActiveReportFrame('wali_kelas');
+            } else {
+              setGradesSubTab('preview');
+              setActiveReportFrame('wali_kelas');
+            }
+          }}
           className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-black text-sm transition-all cursor-pointer ${
-            activeReportFrame === 'wali_kelas'
-              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+            (profileData?.role === 'Wali Kelas' ? activeReportFrame === 'wali_kelas' : activeReportFrame === 'wali_kelas' && gradesSubTab === 'preview')
+              ? profileData?.role === 'Wali Kelas'
+                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                : 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
         >
-          <ClipboardList className="w-5 h-5" />
-          <span>Laporan Wali Kelas</span>
-          {profileData?.role !== 'Wali Kelas' && (
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider ${
-              activeReportFrame === 'wali_kelas' ? 'bg-amber-700 text-amber-100' : 'bg-amber-100 text-amber-800'
-            }`}>
-              Khusus
-            </span>
+          {profileData?.role === 'Wali Kelas' ? (
+            <>
+              <ClipboardList className="w-5 h-5" />
+              <span>Laporan Wali Kelas</span>
+            </>
+          ) : (
+            <>
+              <Eye className="w-5 h-5" />
+              <span>Preview Nilai</span>
+            </>
           )}
         </button>
       </div>
 
       {activeReportFrame === 'wali_kelas' ? (
-        <div className="space-y-6">
-          {profileData?.role !== 'Wali Kelas' && (
-            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-amber-100 text-amber-700 rounded-xl mt-0.5">
-                  <ClipboardList className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-amber-900 text-sm">Informasi Peran Pengguna</h4>
-                  <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
-                    Peran Anda saat ini adalah <b>{profileData?.role || 'Guru Mapel'}</b>. Laporan ini dirancang khusus untuk Wali Kelas dalam membina dan menindaklanjuti siswa. Anda dapat mengubah peran menjadi <b>Wali Kelas</b> secara mandiri di menu <b>Profil Pengguna</b>.
-                  </p>
-                </div>
-              </div>
-              {onNavigateToProfile && (
-                <button
-                  onClick={onNavigateToProfile}
-                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap self-stretch sm:self-auto justify-center cursor-pointer active:scale-95"
-                >
-                  <UserCheck className="w-4 h-4" /> Ubah Peran di Profil <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          )}
-
+        profileData?.role === 'Wali Kelas' ? (
           <HomeroomReportView
             classList={effectiveClassList}
             students={students}
@@ -1138,7 +1144,18 @@ export default function ReportsView({
             showToast={showToast}
             profileData={profileData}
           />
-        </div>
+        ) : (
+          <StudentGradesView
+            classList={effectiveClassList}
+            students={students}
+            profileData={profileData}
+            activeDb={activeDb}
+            activeAuth={activeAuth}
+            trackOp={trackOp}
+            showToast={showToast}
+            initialSubTab={gradesSubTab}
+          />
+        )
       ) : (
         /* Frame 1: Laporan Presensi Siswa */
         <>

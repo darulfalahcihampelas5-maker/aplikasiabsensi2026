@@ -44,5 +44,10 @@ service cloud.firestore {
     match /homeroom_monthly_recaps/{recapId} {
       allow read, write: if isSignedIn();
     }
+
+    // gradeAssignments collection rules
+    match /gradeAssignments/{assignmentId} {
+      allow read, write: if isSignedIn();
+    }
   }
 }

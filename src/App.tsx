@@ -1124,12 +1124,8 @@ export default function App() {
   });
 
   const handleOpenHomeroomReport = useCallback(() => {
-    if (profileData.role === 'Wali Kelas') {
-      setActiveTab('homeroom_report');
-    } else {
-      setShowHomeroomRoleAlert(true);
-    }
-  }, [profileData.role]);
+    setActiveTab('homeroom_report');
+  }, []);
 
   const hasWelcomedRef = useRef(false);
 
@@ -1707,7 +1703,7 @@ export default function App() {
            }
 
            const merged = Array.from(new Set([...prev, ...extractedClasses]));
-           merged.sort((a,b) => a.localeCompare(b, 'id-ID', { numeric: true }));
+           merged.sort(compareClasses);
            if (JSON.stringify(prev) === JSON.stringify(merged)) return prev;
            
            // Persist newly discovered classes to Cloud if we are not in the middle of a reset
@@ -2660,7 +2656,7 @@ export default function App() {
         if (newClasses.length > 0) {
            setClassList(prev => {
              const arr = [...prev, ...newClasses];
-             arr.sort((a,b) => a.localeCompare(b, 'id-ID', { numeric: true }));
+             arr.sort(compareClasses);
              return arr;
            });
         }
@@ -2790,7 +2786,7 @@ export default function App() {
                   <h2 className="text-3xl sm:text-4xl font-black mb-3 tracking-tight leading-tight">
                     Selamat Datang di Aplikasi <span className="text-white border-b-2 border-white/40 pb-0.5">My Kaguci App</span>
                   </h2>
-                  <p className="text-emerald-50 text-base sm:text-lg font-medium opacity-90">Pantau kehadiran, kelola data siswa, dan akses laporan terkini dalam satu tempat.</p>
+                  <p className="text-emerald-50 text-base sm:text-lg font-medium opacity-90">Pantau kehadiran, kelola data nilai siswa, dan akses laporan wali kelas terkini dalam satu tempat.</p>
                 </div>
                 <div className="relative z-10 mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-2xl">
                   <button 
@@ -2805,7 +2801,7 @@ export default function App() {
                     className="bg-white text-lime-800 hover:bg-lime-50 px-5 py-3.5 rounded-2xl font-extrabold text-sm shadow-md hover:shadow-lg hover:scale-102 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <ClipboardList className="w-5 h-5 shrink-0 text-amber-600" /> 
-                    <span>Laporan Wali Kelas</span>
+                    <span>{profileData?.role === 'Wali Kelas' ? 'Laporan Wali Kelas' : 'Input Nilai Siswa'}</span>
                   </button>
                   <button 
                     onClick={() => window.location.reload()} 
@@ -4193,30 +4189,38 @@ export default function App() {
                         setIsProfileSaving(true);
                         trackOp('write', 1);
                         try {
+                          const cleanProfileData = {
+                            namaGuruMapel: profileData.namaGuruMapel || '',
+                            namaKepalaSekolah: profileData.namaKepalaSekolah || '',
+                            nipGuruMapel: profileData.nipGuruMapel || '',
+                            nipKepalaSekolah: profileData.nipKepalaSekolah || '',
+                            namaKurikulum: profileData.namaKurikulum || '',
+                            nipKurikulum: profileData.nipKurikulum || '',
+                            jabatanKurikulum: profileData.jabatanKurikulum || 'Wakasek Kurikulum',
+                            namaKesiswaan: profileData.namaKesiswaan || '',
+                            nipKesiswaan: profileData.nipKesiswaan || '',
+                            jabatanKesiswaan: profileData.jabatanKesiswaan || 'Wakasek Kesiswaan',
+                            namaGuruWali: profileData.namaGuruWali || '',
+                            nipGuruWali: profileData.nipGuruWali || '',
+                            jabatanGuruWali: profileData.jabatanGuruWali || 'Guru Wali',
+                            namaBK: profileData.namaBK || '',
+                            nipBK: profileData.nipBK || '',
+                            jabatanBK: profileData.jabatanBK || 'Guru BK',
+                            namaHumas: profileData.namaHumas || '',
+                            nipHumas: profileData.nipHumas || '',
+                            jabatanHumas: profileData.jabatanHumas || 'Wakasek Humas',
+                            semester: profileData.semester || 'Ganjil',
+                            tahunPelajaran: profileData.tahunPelajaran || '',
+                            mataPelajaran: profileData.mataPelajaran || '',
+                            role: profileData.role || 'Guru Mapel',
+                            waliKelasClass: profileData.waliKelasClass || '',
+                            jumlahSiswaLakiLaki: profileData.jumlahSiswaLakiLaki || 0,
+                            jumlahSiswaPerempuan: profileData.jumlahSiswaPerempuan || 0
+                          };
+
                           const savePayload = {
-                            profileData, // Correct nested format
-                            // Flat format for backward compatibility
-                            namaGuruMapel: profileData.namaGuruMapel,
-                            namaKepalaSekolah: profileData.namaKepalaSekolah,
-                            nipGuruMapel: profileData.nipGuruMapel,
-                            nipKepalaSekolah: profileData.nipKepalaSekolah,
-                            namaKurikulum: profileData.namaKurikulum,
-                            nipKurikulum: profileData.nipKurikulum,
-                            namaKesiswaan: profileData.namaKesiswaan,
-                            nipKesiswaan: profileData.nipKesiswaan,
-                            namaGuruWali: profileData.namaGuruWali,
-                            nipGuruWali: profileData.nipGuruWali,
-                            namaBK: profileData.namaBK,
-                            nipBK: profileData.nipBK,
-                            namaHumas: profileData.namaHumas,
-                            nipHumas: profileData.nipHumas,
-                            semester: profileData.semester,
-                            tahunPelajaran: profileData.tahunPelajaran,
-                            mataPelajaran: profileData.mataPelajaran,
-                            role: profileData.role,
-                            waliKelasClass: profileData.waliKelasClass,
-                            jumlahSiswaLakiLaki: profileData.jumlahSiswaLakiLaki,
-                            jumlahSiswaPerempuan: profileData.jumlahSiswaPerempuan
+                            profileData: cleanProfileData, // Correct nested format
+                            ...cleanProfileData
                           };
                           
                           // Save to activeDb (private database) but gracefully handle custom firestore permission rules
@@ -4760,11 +4764,11 @@ export default function App() {
               </div>
             
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 leading-snug mt-6 lg:text-left text-center max-w-sm mx-auto lg:mx-0">
-              Sistem Informasi Absensi Siswa Berbasis Digital
+              Sistem Informasi Absensi dan Nilai Siswa Berbasis Digital
             </h2>
             
             <p className="text-sm text-slate-600 leading-relaxed max-w-md mx-auto lg:mx-0 mt-4 lg:text-left text-center">
-              Solusi modern untuk manajemen kehadiran siswa yang akurat, real-time, dan terintegrasi. Membangun budaya disiplin melalui teknologi informasi yang cerdas.
+              Solusi modern untuk manajemen kehadiran dan nilai siswa yang akurat, real-time, dan terintegrasi. Membangun budaya disiplin melalui teknologi informasi yang cerdas.
             </p>
 
             {/* PWA Install Info Box on Login screen */}

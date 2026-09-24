@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { Firestore, writeBatch, doc, setDoc } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
+import { compareClasses } from './classSortUtils';
 
 export interface Student {
   id: string;
@@ -298,7 +299,7 @@ export const importExcelHelper = async (
         // Update class list in Firestore with newly discovered classes
         if (discoveredClasses.length > 0) {
           const updatedClasses = Array.from(new Set([...classList, ...discoveredClasses]));
-          updatedClasses.sort((a, b) => a.localeCompare(b, 'id-ID', { numeric: true }));
+          updatedClasses.sort(compareClasses);
 
           // Save directly to Firestore users document for guaranteed sync
           try {
