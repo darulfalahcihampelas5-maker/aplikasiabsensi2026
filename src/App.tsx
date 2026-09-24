@@ -88,6 +88,7 @@ import * as XLSX from 'xlsx';
 import { importExcelHelper } from './importExcelHelper';
 
 import ReportsView from './ReportsView';
+import { compareClasses, compareStudentsByClass } from './classSortUtils';
 
 type Status = 'Hadir' | 'Sakit' | 'Izin' | 'Alpa' | 'Dispen' | '';
 
@@ -454,7 +455,7 @@ function AttendanceView({
              
              <div className="p-6 max-h-[60vh] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  {classList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => (
+                  {classList.slice().sort(compareClasses).map(c => (
                     <button
                       key={c}
                       onClick={() => {
@@ -1870,10 +1871,14 @@ export default function App() {
   }, [isWaliKelas, profileData.waliKelasClass, classList]);
 
   const effectiveStudents = useMemo(() => {
+    let list: Student[] = [];
     if (isWaliKelas && profileData.waliKelasClass) {
-      return students.filter(s => s.class === profileData.waliKelasClass);
+      list = students.filter(s => s.class === profileData.waliKelasClass);
+    } else {
+      list = [...students];
     }
-    return students;
+    // Urutkan berdasarkan kelas (X1, X2, ... XI 8, XI 9, ... XII) lalu nama siswa
+    return list.sort(compareStudentsByClass);
   }, [isWaliKelas, profileData.waliKelasClass, students]);
 
   useEffect(() => {
@@ -2040,7 +2045,7 @@ export default function App() {
       });
     });
 
-    result.sort((a, b) => a.className.localeCompare(b.className, 'id-ID', { numeric: true }));
+    result.sort((a, b) => compareClasses(a.className, b.className));
 
     return result;
   }, [students, attendanceSessions, effectiveClassList]);
@@ -2493,7 +2498,7 @@ export default function App() {
   const addOrUpdateStudent = async () => {
     const studentClass = (isWaliKelas && profileData.waliKelasClass) ? profileData.waliKelasClass : newStudent.class;
     if (!newStudent.name || !newStudent.nisn || !studentClass) {
-      showToast('Mohon lengkapi semua data siswa (Nama, NISN, Kelas).', 'error');
+      showToast('Mohon lengkapi semua data siswa (Nama, NIS, Kelas).', 'error');
       return;
     }
     if (!activeAuth.currentUser) {
@@ -2501,10 +2506,10 @@ export default function App() {
       return;
     }
     
-    // Cek apakah NISN sudah terdaftar (double)
+    // Cek apakah NIS sudah terdaftar (double)
     const isDuplicateNisn = students.some(s => s.nisn === newStudent.nisn && s.id !== editingStudentId);
     if (isDuplicateNisn) {
-      showToast('NISN / NIS sudah terdaftar.', 'error');
+      showToast('NIS sudah terdaftar.', 'error');
       return;
     }
     
@@ -3280,7 +3285,7 @@ export default function App() {
                             showToast('Kelas "' + val + '" sudah terdaftar', 'error');
                           } else {
                             const arr = [...classList, val];
-                            arr.sort((a,b) => a.localeCompare(b, 'id-ID', { numeric: true }));
+                            arr.sort(compareClasses);
                             setClassList(arr); 
                             
                             // Explicit cloud save
@@ -3302,6 +3307,7 @@ export default function App() {
                             showToast('Kelas "' + val + '" sudah terdaftar', 'error');
                         } else {
                           const newList = [...classList, val];
+                          newList.sort(compareClasses);
                           setClassList(newList); 
                           
                           // Explicit cloud save
@@ -3317,7 +3323,7 @@ export default function App() {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  {effectiveClassList.length === 0 ? <p className="text-slate-600 italic">Belum ada kelas.</p> : effectiveClassList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => {
+                  {effectiveClassList.length === 0 ? <p className="text-slate-600 italic">Belum ada kelas.</p> : effectiveClassList.slice().sort(compareClasses).map(c => {
                     const count = effectiveStudents.filter(s => s.class === c).length;
                     return (
                       <div key={c} className="flex flex-col gap-1 border border-slate-200 bg-slate-50 rounded-2xl p-3">
@@ -3431,7 +3437,7 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <input type="text" className="p-3 border rounded-xl" placeholder="Nama Lengkap" value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} />
-                  <input type="text" className="p-3 border rounded-xl" placeholder="NISN" value={newStudent.nisn} onChange={(e) => setNewStudent({...newStudent, nisn: e.target.value.replace(/\D/g, '')})} />
+                  <input type="text" className="p-3 border rounded-xl" placeholder="NIS" value={newStudent.nisn} onChange={(e) => setNewStudent({...newStudent, nisn: e.target.value.replace(/\D/g, '')})} />
                   <select 
                     className="p-3 bg-white border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-[#8dc63f] disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed" 
                     value={isWaliKelas && profileData?.waliKelasClass ? profileData.waliKelasClass : newStudent.class} 
@@ -3439,7 +3445,7 @@ export default function App() {
                     onChange={(e) => setNewStudent({...newStudent, class: e.target.value})}
                   >
                     {!isWaliKelas && <option value="">Pilih Kelas</option>}
-                    {effectiveClassList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => <option key={c} value={c}>{c}</option>)}
+                    {effectiveClassList.slice().sort(compareClasses).map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <button className="bg-[#8dc63f] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#7bc025] w-full" onClick={addOrUpdateStudent}>{editingStudentId ? 'Update' : 'Simpan'}</button>
@@ -3482,7 +3488,7 @@ export default function App() {
                       <tr>
                         <th className="p-4 font-bold text-slate-600 bg-slate-50">No.</th>
                         <th className="p-4 font-bold text-slate-600 bg-slate-50">Nama</th>
-                        <th className="p-4 font-bold text-slate-600 bg-slate-50">NISN</th>
+                        <th className="p-4 font-bold text-slate-600 bg-slate-50">NIS</th>
                         <th className="p-4 font-bold text-slate-600 bg-slate-50">Kelas</th>
                         <th className="p-4 font-bold text-slate-600 bg-slate-50">Aksi</th>
                       </tr>

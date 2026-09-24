@@ -20,6 +20,7 @@ import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { kopSuratBase64 } from './kop-surat-b64';
 import HomeroomReportView from './HomeroomReportView';
+import { compareClasses, compareStudentsByClass } from './classSortUtils';
 import type { Firestore } from 'firebase/firestore';
 import type { Auth } from 'firebase/auth';
 
@@ -197,7 +198,7 @@ export default function ReportsView({
   const classStudents = useMemo(() => {
     if (!selectedClass) return [];
     if (selectedClass === 'all') {
-      return [...students].sort((a, b) => a.class.localeCompare(b.class, undefined, { numeric: true, sensitivity: 'base' }) || a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+      return [...students].sort(compareStudentsByClass);
     }
     return students.filter(s => s.class === selectedClass).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
   }, [students, selectedClass]);
@@ -490,7 +491,7 @@ export default function ReportsView({
 
         const row: Record<string, string | number | boolean> = {
           'No': i + 1,
-          'NISN': student.nisn,
+          'NIS': student.nisn,
           'Nama Lengkap Siswa': student.name
         };
         
@@ -513,7 +514,7 @@ export default function ReportsView({
       data = classStudents.map((student, i) => {
         const row: Record<string, string | number | boolean> = {
           'No': i + 1,
-          'NISN': student.nisn,
+          'NIS': student.nisn,
           'Nama Lengkap Siswa': student.name
         };
         
@@ -551,7 +552,7 @@ export default function ReportsView({
       data = classStudents.map((student, i) => {
         const row: Record<string, string | number | boolean> = {
           'No': i + 1,
-          'NISN': student.nisn,
+          'NIS': student.nisn,
           'Nama Lengkap Siswa': student.name
         };
         
@@ -609,7 +610,7 @@ export default function ReportsView({
 
         const row: Record<string, string | number | boolean> = {
           'No': i + 1,
-          'NISN': student.nisn,
+          'NIS': student.nisn,
           'Nama Lengkap Siswa': student.name
         };
 
@@ -1196,7 +1197,7 @@ export default function ReportsView({
                 >
                   {!isWaliKelas && <option value="">-- Pilih Kelas --</option>}
                   {!isWaliKelas && <option value="all">Semua Kelas</option>}
-                  {effectiveClassList.slice().sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map(c => <option key={c} value={c}>{c}</option>)}
+                  {effectiveClassList.slice().sort(compareClasses).map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                 {isWaliKelas && profileData?.waliKelasClass && (
                   <p className="text-[11px] text-emerald-800 font-bold mt-1.5 flex items-center gap-1.5">

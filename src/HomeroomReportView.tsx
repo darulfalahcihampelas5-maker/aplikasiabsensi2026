@@ -31,6 +31,7 @@ import { handleFirestoreError, OperationType } from './firebase';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { kopSuratBase64 } from './kop-surat-b64';
+import { compareClasses } from './classSortUtils';
 
 interface Student {
   id: string;
@@ -426,7 +427,7 @@ export default function HomeroomReportView({
     if (isWaliKelas && profileData?.waliKelasClass) {
       return [profileData.waliKelasClass];
     }
-    return classList;
+    return classList.slice().sort(compareClasses);
   }, [isWaliKelas, profileData?.waliKelasClass, classList]);
 
   const [selectedClass, setSelectedClass] = useState<string>(() => {
