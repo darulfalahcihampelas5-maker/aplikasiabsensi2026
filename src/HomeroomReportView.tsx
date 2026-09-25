@@ -1482,7 +1482,7 @@ export default function HomeroomReportView({
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
       {/* CARD 1: FORM PENCATATAN TINDAK LANJUT SISWA */}
-      <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden print:hidden">
+      <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border-2 border-slate-400 relative overflow-hidden print:hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full blur-3xl opacity-50 -mr-32 -mt-32"></div>
         
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
@@ -1500,7 +1500,7 @@ export default function HomeroomReportView({
 
           {/* Profile gender summary tag */}
           {profileData?.role === 'Wali Kelas' && (
-            <div className="flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-2xl text-xs font-bold text-slate-700">
+            <div className="flex flex-wrap items-center gap-2 bg-slate-50 border-2 border-slate-400 px-4 py-2 rounded-2xl text-xs font-bold text-slate-700">
               <Users className="w-4 h-4 text-emerald-600" />
               <span>Siswa: <strong className="text-emerald-700">{profileData?.jumlahSiswaLakiLaki || 0} L</strong> / <strong className="text-emerald-700">{profileData?.jumlahSiswaPerempuan || 0} P</strong></span>
               <span className="text-slate-300">|</span>
@@ -1635,7 +1635,7 @@ export default function HomeroomReportView({
 
         {/* Tanggal Kasus / Pertemuan untuk Siswa yang Dipilih */}
         {selectedStudentId && (
-          <div className="mb-6 p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="mb-6 p-4 bg-amber-50/60 border-2 border-slate-400 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-600" />
               <span className="text-xs font-bold text-slate-800">Tanggal Kejadian / Pembinaan:</span>
@@ -1770,7 +1770,7 @@ export default function HomeroomReportView({
 
       {/* CARD 2: STATISTIK AKUMULASI KELAS (Ringkasan Kehadiran) */}
       {selectedClass && (
-        <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border border-slate-100">
+        <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border-2 border-slate-400">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
               <h3 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
@@ -1782,48 +1782,48 @@ export default function HomeroomReportView({
               </p>
             </div>
             
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700">
+            <div className="flex items-center gap-2 bg-slate-50 border-2 border-slate-400 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700">
               <span>Total Siswa: {classAccumulationStats.totalSiswa}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="bg-emerald-50/60 p-3.5 rounded-2xl border border-emerald-100 text-center">
+            <div className="bg-emerald-50/60 p-3.5 rounded-2xl border-2 border-slate-400 text-center">
               <div className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">Hadir</div>
               <div className="text-lg font-black text-emerald-700">
                 {classAccumulationStats.hadir}
                 <span className="text-[10px] font-bold block text-emerald-600">({classAccumulationStats.hadirPct.toFixed(1)}%)</span>
               </div>
             </div>
-            <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100 text-center">
+            <div className="bg-amber-50/60 p-3.5 rounded-2xl border-2 border-slate-400 text-center">
               <div className="text-[11px] font-bold text-amber-600 uppercase tracking-wider mb-0.5">Sakit</div>
               <div className="text-lg font-black text-amber-700">
                 {classAccumulationStats.sakit}
                 <span className="text-[10px] font-bold block text-amber-600">({classAccumulationStats.sakitPct.toFixed(1)}%)</span>
               </div>
             </div>
-            <div className="bg-sky-50/60 p-3.5 rounded-2xl border border-sky-100 text-center">
+            <div className="bg-sky-50/60 p-3.5 rounded-2xl border-2 border-slate-400 text-center">
               <div className="text-[11px] font-bold text-sky-600 uppercase tracking-wider mb-0.5">Izin</div>
               <div className="text-lg font-black text-sky-700">
                 {classAccumulationStats.izin}
                 <span className="text-[10px] font-bold block text-sky-600">({classAccumulationStats.izinPct.toFixed(1)}%)</span>
               </div>
             </div>
-            <div className="bg-rose-50/60 p-3.5 rounded-2xl border border-rose-100 text-center">
+            <div className="bg-rose-50/60 p-3.5 rounded-2xl border-2 border-slate-400 text-center">
               <div className="text-[11px] font-bold text-rose-600 uppercase tracking-wider mb-0.5">Alpa</div>
               <div className="text-lg font-black text-rose-700">
                 {classAccumulationStats.alpa}
                 <span className="text-[10px] font-bold block text-rose-600">({classAccumulationStats.alpaPct.toFixed(1)}%)</span>
               </div>
             </div>
-            <div className="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100 text-center">
+            <div className="bg-indigo-50/60 p-3.5 rounded-2xl border-2 border-slate-400 text-center">
               <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider mb-0.5">Dispen</div>
               <div className="text-lg font-black text-indigo-700">
                 {classAccumulationStats.dispen}
                 <span className="text-[10px] font-bold block text-indigo-600">({classAccumulationStats.dispenPct.toFixed(1)}%)</span>
               </div>
             </div>
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
+            <div className="bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-400 text-center">
               <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Kehadiran</div>
               <div className="text-lg font-black text-slate-800">{classAccumulationStats.persentase.toFixed(1)}%</div>
             </div>
@@ -1833,7 +1833,7 @@ export default function HomeroomReportView({
 
       {/* CARD 3: REKAP TINDAK LANJUT BULAN INI (REQUESTED ITEM 3) */}
       {selectedClass && (
-        <div id="rekap-form-anchor" className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border border-slate-100 space-y-6">
+        <div id="rekap-form-anchor" className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border-2 border-slate-400 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
@@ -1874,7 +1874,7 @@ export default function HomeroomReportView({
 
             return (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/70 p-5 rounded-2xl border-2 border-slate-400">
                   {/* 1. Pembinaan Murid */}
                   <StudentMultiSelectDropdown 
                     label="Pembinaan Murid"
@@ -2200,7 +2200,7 @@ export default function HomeroomReportView({
 
       {/* CARD 4: DAFTAR LAPORAN PER SISWA TERSIMPAN & CETAK PDF */}
       {selectedClass && (
-        <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border border-slate-100">
+        <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border-2 border-slate-400">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <h3 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">

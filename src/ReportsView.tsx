@@ -1114,7 +1114,7 @@ export default function ReportsView({
             (profileData?.role === 'Wali Kelas' ? activeReportFrame === 'wali_kelas' : activeReportFrame === 'wali_kelas' && gradesSubTab === 'preview')
               ? profileData?.role === 'Wali Kelas'
                 ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
-                : 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                : 'bg-[#8dc63f] text-white shadow-md shadow-[#8dc63f]/30'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
           }`}
         >
@@ -1148,6 +1148,7 @@ export default function ReportsView({
           <StudentGradesView
             classList={effectiveClassList}
             students={students}
+            attendanceSessions={attendanceSessions}
             profileData={profileData}
             activeDb={activeDb}
             activeAuth={activeAuth}
@@ -1191,7 +1192,7 @@ export default function ReportsView({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-1 space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-slate-400">
             <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
               <Filter className="w-5 h-5 text-emerald-700" /> Filter Laporan
             </h3>
@@ -1207,7 +1208,7 @@ export default function ReportsView({
                   )}
                 </div>
                 <select 
-                  className="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed"
+                  className="w-full p-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed"
                   value={selectedClass}
                   onChange={(e) => setSelectedClass(e.target.value)}
                   disabled={isWaliKelas && !!profileData?.waliKelasClass}
@@ -1228,7 +1229,7 @@ export default function ReportsView({
                 <div>
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Jenis Laporan</label>
                   <select 
-                    className="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors font-medium text-slate-700"
+                    className="w-full p-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors font-medium text-slate-700"
                     value={reportType}
                     onChange={(e) => setReportType(e.target.value as 'daily' | 'monthly' | 'custom' | 'summary')}
                   >
@@ -1241,7 +1242,7 @@ export default function ReportsView({
               )}
 
               {selectedClass && reportType === 'custom' && (
-                <div className="p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl space-y-3">
+                <div className="p-3.5 bg-slate-50 border-2 border-slate-400 rounded-xl space-y-3">
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
                       <Calendar className="w-3.5 h-3.5 text-emerald-600" />
@@ -1274,7 +1275,7 @@ export default function ReportsView({
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Pilih Tanggal</label>
                   {availableDailyDates.length > 0 ? (
                     <select 
-                      className="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors"
+                      className="w-full p-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors"
                       value={selectedDailyDate}
                       onChange={(e) => setSelectedDailyDate(e.target.value)}
                     >
@@ -1283,7 +1284,7 @@ export default function ReportsView({
                       ))}
                     </select>
                   ) : (
-                    <div className="w-full p-3 bg-slate-100 text-slate-600 border-2 border-slate-300 rounded-xl text-sm italic">
+                    <div className="w-full p-3 bg-slate-100 text-slate-600 border-2 border-slate-400 rounded-xl text-sm italic">
                       Belum ada sesi absensi
                     </div>
                   )}
@@ -1295,7 +1296,7 @@ export default function ReportsView({
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Pilih Bulan</label>
                   <input 
                     type="month" 
-                    className="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors"
+                    className="w-full p-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors"
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
                   />
@@ -1326,7 +1327,7 @@ export default function ReportsView({
                       1. Ttd Kiri (Mengetahui)
                     </label>
                     <select 
-                      className="w-full p-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors text-xs font-bold text-slate-800"
+                      className="w-full p-2.5 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors text-xs font-bold text-slate-800"
                       value={leftSignerRole}
                       onChange={(e) => setLeftSignerRole(e.target.value as SignerRoleType)}
                     >
@@ -1347,7 +1348,7 @@ export default function ReportsView({
                       <span className="text-[9px] font-normal text-slate-400">Bila perlu 3 TTD</span>
                     </label>
                     <select 
-                      className="w-full p-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors text-xs font-bold text-slate-800"
+                      className="w-full p-2.5 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors text-xs font-bold text-slate-800"
                       value={midSignerRole}
                       onChange={(e) => setMidSignerRole(e.target.value as SignerRoleType)}
                     >
@@ -1391,9 +1392,9 @@ export default function ReportsView({
 
         <div className="md:col-span-2">
           {!selectedClass ? (
-            <div className="bg-slate-50/50 rounded-2xl border border-slate-100 h-full min-h-[300px] flex flex-col items-center justify-center p-8 text-center space-y-4">
-              <div className="p-4 bg-white rounded-full shadow-sm">
-                <FileText className="w-8 h-8 text-slate-300" />
+            <div className="bg-slate-50/50 rounded-2xl border-2 border-slate-400 h-full min-h-[300px] flex flex-col items-center justify-center p-8 text-center space-y-4">
+              <div className="p-4 bg-white rounded-full shadow-sm border-2 border-slate-200">
+                <FileText className="w-8 h-8 text-slate-400" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-700">Pilih Kelas Terlebih Dahulu</h3>
@@ -1401,8 +1402,8 @@ export default function ReportsView({
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-400 overflow-hidden">
+              <div className="p-6 border-b-2 border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-bold text-slate-800">
                     Preview Laporan {reportType === 'summary' ? 'Total' : reportType === 'monthly' ? 'Bulanan' : reportType === 'custom' ? 'Rentang Tanggal' : 'Harian'}
@@ -1415,19 +1416,19 @@ export default function ReportsView({
                     {reportType === 'summary' && classSessions.length > 0 && ` | Tanggal: ${format(parseISO(classSessions[0].date), 'dd MMM yyyy', {locale: id})} - ${format(parseISO(classSessions[classSessions.length - 1].date), 'dd MMM yyyy', {locale: id})}`}
                   </p>
                 </div>
-                <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
+                <div className="flex bg-slate-50 rounded-lg p-1 border-2 border-slate-400">
                   <span className="px-3 py-1 text-xs font-bold text-slate-600">Total: {classStudents.length} Siswa</span>
                 </div>
               </div>
 
               {/* Statistik Kelas Section */}
               {classStats && (
-                <div className="p-6 bg-slate-50 border-b border-slate-100">
+                <div className="p-6 bg-slate-50 border-b-2 border-slate-200">
                   <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">Statistik Akumulasi Kelas</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                     
                     {/* Hadir */}
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-400 shadow-xs flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Kehadiran (Hadir)</span>
                       <div className="flex items-baseline gap-1.5 mt-1">
                         <span className="text-xl font-black text-emerald-700">{classStats.hadir}</span>
@@ -1440,7 +1441,7 @@ export default function ReportsView({
                     </div>
 
                     {/* Sakit */}
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-400 shadow-xs flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Sakit</span>
                       <div className="flex items-baseline gap-1.5 mt-1">
                         <span className="text-xl font-black text-amber-700">{classStats.sakit}</span>
@@ -1453,7 +1454,7 @@ export default function ReportsView({
                     </div>
 
                     {/* Izin */}
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-400 shadow-xs flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Izin</span>
                       <div className="flex items-baseline gap-1.5 mt-1">
                         <span className="text-xl font-black text-blue-700">{classStats.izin}</span>
@@ -1466,7 +1467,7 @@ export default function ReportsView({
                     </div>
 
                     {/* Alpa */}
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col justify-between col-span-1">
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-400 shadow-xs flex flex-col justify-between col-span-1">
                       <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Alpa</span>
                       <div className="flex items-baseline gap-1.5 mt-1">
                         <span className="text-xl font-black text-rose-700">{classStats.alpa}</span>
@@ -1479,7 +1480,7 @@ export default function ReportsView({
                     </div>
 
                     {/* Dispen */}
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-400 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
                       <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Dispen</span>
                       <div className="flex items-baseline gap-1.5 mt-1">
                         <span className="text-xl font-black text-indigo-700">{classStats.dispen}</span>
@@ -1671,7 +1672,7 @@ export default function ReportsView({
                initial={{ scale: 0.9, opacity: 0 }}
                animate={{ scale: 1, opacity: 1 }}
                exit={{ scale: 0.9, opacity: 0 }}
-               className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] text-center border border-slate-100"
+               className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] text-center border-2 border-slate-400"
              >
                 <div className="relative mx-auto w-24 h-24 mb-6">
                   <motion.div 
@@ -1776,7 +1777,7 @@ export default function ReportsView({
                       <select 
                         value={leftSignerRole}
                         onChange={(e) => setLeftSignerRole(e.target.value as SignerRoleType)}
-                        className="w-full p-2.5 bg-white border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors"
+                        className="w-full p-2.5 bg-white border-2 border-slate-400 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors"
                       >
                         <option value="kepala_sekolah">🏫 Kepala Sekolah ({profileData?.namaKepalaSekolah || 'Belum diisi'})</option>
                         <option value="kurikulum">📚 Pihak Kurikulum ({profileData?.namaKurikulum || 'Belum diisi'})</option>
@@ -1796,7 +1797,7 @@ export default function ReportsView({
                       <select 
                         value={midSignerRole}
                         onChange={(e) => setMidSignerRole(e.target.value as SignerRoleType)}
-                        className="w-full p-2.5 bg-white border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors"
+                        className="w-full p-2.5 bg-white border-2 border-slate-400 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors"
                       >
                         <option value="none">➖ Tanpa Ttd Tengah (2 TTD)</option>
                         <option value="kurikulum">📚 Pihak Kurikulum ({profileData?.namaKurikulum || 'Belum diisi'})</option>

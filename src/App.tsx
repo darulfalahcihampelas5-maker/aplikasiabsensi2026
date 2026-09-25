@@ -309,13 +309,13 @@ function AttendanceView({
          </div>
       </div>
 
-      <div className="bg-white p-6 sm:p-8 rounded-[1.5rem] border-2 border-slate-300/60 shadow-sm space-y-6">
+      <div className="bg-white p-6 sm:p-8 rounded-[1.5rem] border-2 border-slate-400/60 shadow-sm space-y-6">
          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-2.5">Tanggal Presensi</label>
               <button 
                 onClick={() => setIsDateModalOpen(true)}
-                className="w-full px-4 py-3.5 bg-slate-50/50 border-2 border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all outline-none text-left font-semibold flex items-center justify-between group hover:bg-white hover:border-emerald-400"
+                className="w-full px-4 py-3.5 bg-slate-50/50 border-2 border-slate-400 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all outline-none text-left font-semibold flex items-center justify-between group hover:bg-white hover:border-emerald-400"
               >
                 <span className="text-slate-800 font-bold">
                   {format(parseISO(date), 'dd MMM yyyy')}
@@ -339,7 +339,7 @@ function AttendanceView({
                   }
                 }}
                 disabled={classList.length === 1}
-                className="w-full px-4 py-3.5 bg-slate-50/50 border-2 border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all outline-none text-left font-semibold flex items-center justify-between group hover:bg-white hover:border-emerald-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3.5 bg-slate-50/50 border-2 border-slate-400 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all outline-none text-left font-semibold flex items-center justify-between group hover:bg-white hover:border-emerald-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:cursor-not-allowed"
               >
                  <span className={selectedClass ? "text-slate-800 font-bold" : "text-slate-500"}>
                    {selectedClass || "-- Pilih Kelas --"}
@@ -497,7 +497,7 @@ function AttendanceView({
       )}
 
       {selectedClass && studentsInClass.length > 0 && (
-        <div className="bg-white rounded-[1.5rem] border-2 border-slate-300/60 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-[1.5rem] border-2 border-slate-400/60 shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
              <div>
                <h3 className="text-lg font-bold text-slate-800 tracking-tight">Tabel Presensi</h3>
@@ -570,7 +570,7 @@ function AttendanceView({
                              setIsEditing(false);
                              setCurrentRecords(existingSession.records);
                           }}
-                          className="flex-1 sm:flex-none sm:w-auto bg-white border-2 border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold text-sm hover:bg-slate-50 transition-all active:scale-95"
+                          className="flex-1 sm:flex-none sm:w-auto bg-white border-2 border-slate-400 text-slate-700 px-6 py-2.5 rounded-lg font-semibold text-sm hover:bg-slate-50 transition-all active:scale-95"
                        >
                           Batal
                        </button>
@@ -586,7 +586,7 @@ function AttendanceView({
                  <>
                     <button
                        onClick={() => setIsEditing(true)}
-                       className="flex-1 sm:flex-none sm:w-auto bg-white border-2 border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                       className="flex-1 sm:flex-none sm:w-auto bg-white border-2 border-slate-400 text-slate-700 px-6 py-2.5 rounded-lg font-semibold text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
                     >
                        <Pencil className="w-4 h-4" /> Edit
                     </button>
@@ -615,7 +615,7 @@ function AttendanceView({
       )}
 
       {selectedClass && classSessions.length > 0 && (
-        <div className="bg-white rounded-[1.5rem] border-2 border-slate-300/60 shadow-sm overflow-hidden flex flex-col mt-8">
+        <div className="bg-white rounded-[1.5rem] border-2 border-slate-400/60 shadow-sm overflow-hidden flex flex-col mt-8">
           <div className="p-6 sm:p-8 border-b border-slate-100 bg-white flex flex-col items-center justify-center text-center gap-2">
             <h3 className="text-xl font-bold text-slate-800 tracking-tight">Riwayat Presensi</h3>
             <div className="text-center">
@@ -2747,7 +2747,7 @@ export default function App() {
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  <div className="bg-sky-50 border border-sky-100 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-left shadow-sm mb-6">
+                  <div className="bg-sky-50 border-2 border-slate-400 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-left shadow-sm mb-6">
                     <div className="w-10 h-10 shrink-0 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center">
                       <Cloud className="w-5 h-5" />
                     </div>
@@ -2814,8 +2814,8 @@ export default function App() {
               </div>
 
               {/* Date & Motivation Widget */}
-              <div className="bg-white rounded-[2rem] p-6 sm:p-8 border border-slate-100 shadow-sm flex flex-col justify-center items-center text-center h-full min-h-[240px]">
-                 <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 text-[#8dc63f] shrink-0">
+              <div className="bg-white rounded-[2rem] p-6 sm:p-8 border-2 border-slate-400 shadow-sm flex flex-col justify-center items-center text-center h-full min-h-[240px]">
+                 <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 text-[#8dc63f] shrink-0 border-2 border-emerald-200">
                     <Calendar className="w-10 h-10" />
                  </div>
                  <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-tight">
@@ -2861,8 +2861,8 @@ export default function App() {
                   shadow: 'hover:shadow-rose-100/60 hover:border-rose-300' 
                 },
               ].map((item, i) => (
-                <div key={i} className={`p-5 sm:p-6 rounded-[2rem] border border-slate-100 bg-white flex flex-col gap-4 sm:gap-6 justify-between items-center sm:items-start text-center sm:text-left transition-all duration-300 hover:-translate-y-1 shadow-sm ${item.shadow}`}>
-                  <div className={`p-4 rounded-[1.25rem] w-fit ${item.bg} border`}>
+                <div key={i} className={`p-5 sm:p-6 rounded-[2rem] border-2 border-slate-400 bg-white flex flex-col gap-4 sm:gap-6 justify-between items-center sm:items-start text-center sm:text-left transition-all duration-300 hover:-translate-y-1 shadow-sm ${item.shadow}`}>
+                  <div className={`p-4 rounded-[1.25rem] w-fit ${item.bg} border-2`}>
                     <item.icon className={`w-7 h-7 ${item.color}`} />
                   </div>
                   <div className="w-full">
@@ -2874,7 +2874,7 @@ export default function App() {
             </div>
 
             {/* BARU: Menu Informasi & Ringkasan Ketidakhadiran Siswa (Alpa, Sakit, Izin) */}
-            <div className="bg-white rounded-[3rem] border-2 border-slate-300/60 shadow-xl shadow-slate-100/50 flex flex-col overflow-hidden">
+            <div className="bg-white rounded-[3rem] border-2 border-slate-400/60 shadow-xl shadow-slate-100/50 flex flex-col overflow-hidden">
               {/* Header Section - Selalu Terlihat */}
               <div className="p-8 sm:p-10 border-b border-slate-100 bg-white shadow-sm z-20 shrink-0">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
@@ -2893,7 +2893,7 @@ export default function App() {
                   </div>
                   
                   {/* Tab selector */}
-                  <div className="flex bg-slate-100 p-1.5 rounded-[1.25rem] border-2 border-slate-300/60 self-start sm:self-auto shrink-0 shadow-inner">
+                  <div className="flex bg-slate-100 p-1.5 rounded-[1.25rem] border-2 border-slate-400/60 self-start sm:self-auto shrink-0 shadow-inner">
                     <button 
                       onClick={() => setDashboardActiveStatsTab('class_summary')}
                       className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${
@@ -2922,7 +2922,7 @@ export default function App() {
                 {dashboardActiveStatsTab === 'class_summary' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-4">
                   {studentAbsenceStats.length === 0 ? (
-                    <div className="col-span-full py-12 text-center bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                    <div className="col-span-full py-12 text-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-400">
                       <p className="text-slate-500 font-bold mb-2">Belum ada data kelas yang terdaftar</p>
                       <button onClick={() => setActiveTab('students')} className="text-sm font-bold text-[#7bc025] hover:underline">
                         Mulai dengan mengelola kelas & siswa di sini
@@ -2933,7 +2933,7 @@ export default function App() {
 
                       
                       return (
-                        <div key={clsData.className} className="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 flex flex-col justify-between hover:shadow-md transition-all">
+                        <div key={clsData.className} className="bg-slate-50/50 rounded-2xl p-5 border-2 border-slate-400 flex flex-col justify-between hover:shadow-md transition-all">
                           <div>
                             <div className="flex items-center justify-between mb-4">
                               <span className="bg-[#8dc63f] text-white px-3.5 py-1 rounded-full text-xs font-black shadow-sm">
@@ -2968,7 +2968,7 @@ export default function App() {
 
                           <button 
                             onClick={() => setDashboardSelectedClassDetail(clsData.className)}
-                            className="w-full mt-4 bg-white hover:bg-slate-100 border-2 border-slate-300 text-slate-700 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                            className="w-full mt-4 bg-white hover:bg-slate-100 border-2 border-slate-400 text-slate-700 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
                           >
                             <Info className="w-3.5 h-3.5" /> Detail Absensi Kelas
                           </button>
@@ -2978,10 +2978,10 @@ export default function App() {
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-slate-100">
+                <div className="overflow-x-auto rounded-2xl border-2 border-slate-400">
                   <table className="w-full text-left border-collapse bg-slate-50/20">
                     <thead>
-                      <tr className="bg-slate-50 text-slate-500 text-xs font-bold uppercase border-b border-slate-100">
+                      <tr className="bg-slate-100/70 text-slate-700 text-xs font-bold uppercase border-b-2 border-slate-300">
                         <th className="py-4 px-6">Nama Siswa</th>
                         <th className="py-4 px-6">Kelas</th>
                         <th className="py-4 px-6 text-center">Sakit (S)</th>
@@ -2991,7 +2991,7 @@ export default function App() {
                         <th className="py-4 px-6 text-right">Tindakan</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y-2 divide-slate-200">
                       {(() => {
                         const allAbsentOrdered = studentAbsenceStats
                           .flatMap(c => c.allAbsenceList.map(s => ({ ...s, className: c.className })))
@@ -3048,7 +3048,7 @@ export default function App() {
                               )}
                             </td>
                             <td className="py-4 px-6 text-center">
-                              <span className="bg-slate-100 text-slate-700 font-black px-2.5 py-1.5 rounded-full text-xs border-2 border-slate-300">
+                              <span className="bg-slate-100 text-slate-700 font-black px-2.5 py-1.5 rounded-full text-xs border-2 border-slate-400">
                                 {student.total} Hari
                               </span>
                             </td>
@@ -3080,7 +3080,7 @@ export default function App() {
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col my-8"
+                    className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl border-2 border-slate-400 flex flex-col my-8"
                   >
                     <div className="bg-gradient-to-r from-lime-600 to-lime-700 p-6 sm:p-8 text-white flex justify-between items-center shrink-0">
                       <div>
@@ -3102,7 +3102,7 @@ export default function App() {
                         const classInfo = studentAbsenceStats.find(c => c.className === dashboardSelectedClassDetail);
                         if (!classInfo || classInfo.allAbsenceList.length === 0) {
                           return (
-                            <div className="py-24 text-center text-slate-500 bg-white rounded-[2.5rem] border border-dashed border-slate-200 shadow-sm mx-2">
+                            <div className="py-24 text-center text-slate-500 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-400 shadow-sm mx-2">
                               <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                                 <CheckCircle className="w-8 h-8 text-[#8dc63f]" />
                               </div>
@@ -3178,7 +3178,7 @@ export default function App() {
                     <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 shrink-0">
                       <button 
                         onClick={() => setDashboardSelectedClassDetail(null)}
-                        className="bg-white border-2 border-slate-300 text-slate-700 px-6 py-3 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-all"
+                        className="bg-white border-2 border-slate-400 text-slate-700 px-6 py-3 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-all"
                       >
                         Tutup
                       </button>
@@ -3200,7 +3200,7 @@ export default function App() {
             {/* Bottom Section - Quick Actions / Shortcuts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {/* Quick Reports Access */}
-               <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+               <div className="bg-white p-6 sm:p-8 rounded-[2rem] border-2 border-slate-400 shadow-sm">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="p-3 bg-sky-50 rounded-2xl text-sky-500">
                        <BarChart3 className="w-6 h-6" />
@@ -3236,11 +3236,11 @@ export default function App() {
                </div>
 
                {/* Hint / Setup Call to Action */}
-               <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
+               <div className="bg-white p-6 sm:p-8 rounded-[2rem] border-2 border-slate-400 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-6 opacity-5">
                     <Settings2 className="w-48 h-48 -rotate-45" />
                   </div>
-                  <div className="w-20 h-20 bg-slate-50 rounded-[1.5rem] flex items-center justify-center text-slate-500 mb-6 relative z-10 border border-slate-100">
+                  <div className="w-20 h-20 bg-slate-50 rounded-[1.5rem] flex items-center justify-center text-slate-500 mb-6 relative z-10 border-2 border-slate-400">
                      <Plus className="w-10 h-10" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 relative z-10 mb-2">Perbarui Data Master</h3>
@@ -3258,7 +3258,7 @@ export default function App() {
           <div className="p-8 space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Kelas */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
+              <div className="bg-white p-6 rounded-2xl border-2 border-slate-400 shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold text-slate-800">Manajemen Kelas</h2>
                   {isWaliKelas && profileData?.waliKelasClass && (
@@ -3322,7 +3322,7 @@ export default function App() {
                   {effectiveClassList.length === 0 ? <p className="text-slate-600 italic">Belum ada kelas.</p> : effectiveClassList.slice().sort(compareClasses).map(c => {
                     const count = effectiveStudents.filter(s => s.class === c).length;
                     return (
-                      <div key={c} className="flex flex-col gap-1 border border-slate-200 bg-slate-50 rounded-2xl p-3">
+                      <div key={c} className="flex flex-col gap-1 border-2 border-slate-400 bg-slate-50 rounded-2xl p-3">
                         <div className="flex items-center gap-2 justify-between">
                           <span className="font-bold text-slate-700">{c}</span>
                           <span className="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-slate-500 border shadow-sm">{count} Siswa</span>
@@ -3412,7 +3412,7 @@ export default function App() {
               </div>
               
               {/* Siswa */}
-              <div id="student-input-container" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6">
+              <div id="student-input-container" className="bg-white p-6 rounded-2xl border-2 border-slate-400 shadow-sm space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <h2 className="text-lg font-bold text-slate-800">Tambah Siswa</h2>
                   <div>
@@ -3435,7 +3435,7 @@ export default function App() {
                   <input type="text" className="p-3 border rounded-xl" placeholder="Nama Lengkap" value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} />
                   <input type="text" className="p-3 border rounded-xl" placeholder="NIS" value={newStudent.nisn} onChange={(e) => setNewStudent({...newStudent, nisn: e.target.value.replace(/\D/g, '')})} />
                   <select 
-                    className="p-3 bg-white border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-[#8dc63f] disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed" 
+                    className="p-3 bg-white border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-[#8dc63f] disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed" 
                     value={isWaliKelas && profileData?.waliKelasClass ? profileData.waliKelasClass : newStudent.class} 
                     disabled={isWaliKelas && !!profileData?.waliKelasClass}
                     onChange={(e) => setNewStudent({...newStudent, class: e.target.value})}
@@ -3448,7 +3448,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="bg-white p-6 rounded-2xl border-2 border-slate-400 shadow-sm">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
                   <h2 className="text-lg font-bold text-slate-800">
@@ -3478,7 +3478,7 @@ export default function App() {
                     : 'Belum ada siswa.'}
                 </p>
               ) : (
-                <div className="overflow-auto max-h-[600px] border border-slate-100 rounded-xl scrollbar-thin">
+                <div className="overflow-auto max-h-[600px] border-2 border-slate-400 rounded-xl scrollbar-thin">
                   <table className="w-full min-w-[650px] text-left border-collapse">
                     <thead className="sticky top-0 bg-slate-50 z-10 shadow-[0_1px_0_0_rgba(226,232,240,1)]">
                       <tr>
@@ -3570,7 +3570,7 @@ export default function App() {
           <div className="p-4 sm:p-6 lg:p-8 space-y-6 flex flex-col items-center max-w-7xl mx-auto w-full">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight self-start mb-2">Profil Saya</h2>
             
-            <div className="bg-white w-full rounded-[2rem] p-6 sm:p-8 border border-slate-100 shadow-sm flex flex-col items-center">
+            <div className="bg-white w-full rounded-[2rem] p-6 sm:p-8 border-2 border-slate-400 shadow-sm flex flex-col items-center">
               <div className="relative mb-6">
                 <div className="w-32 h-32 rounded-full overflow-hidden bg-slate-100 border-4 border-white shadow-lg flex items-center justify-center relative group">
                     {avatarUrl ? (
@@ -3755,17 +3755,17 @@ export default function App() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Guru</label>
-                    <input type="text" disabled={!isProfileEditing} value={profileData.namaGuruMapel} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaGuruMapel: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
+                    <input type="text" disabled={!isProfileEditing} value={profileData.namaGuruMapel} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaGuruMapel: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
                   </div>
                   
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Guru</label>
-                    <input type="text" disabled={!isProfileEditing} value={profileData.nipGuruMapel} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipGuruMapel: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
+                    <input type="text" disabled={!isProfileEditing} value={profileData.nipGuruMapel} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipGuruMapel: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Peran (Role)</label>
-                    <select disabled={!isProfileEditing} value={profileData.role || 'Guru Mapel'} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, role: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100">
+                    <select disabled={!isProfileEditing} value={profileData.role || 'Guru Mapel'} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, role: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100">
                       <option value="Guru Mapel">Guru Mata Pelajaran</option>
                       <option value="Wali Kelas">Wali Kelas</option>
                     </select>
@@ -3773,14 +3773,14 @@ export default function App() {
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mata Pelajaran</label>
-                    <input type="text" disabled={!isProfileEditing || profileData.role === 'Wali Kelas'} value={profileData.mataPelajaran} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, mataPelajaran: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
+                    <input type="text" disabled={!isProfileEditing || profileData.role === 'Wali Kelas'} value={profileData.mataPelajaran} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, mataPelajaran: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
                   </div>
 
                   {profileData.role === 'Wali Kelas' && (
                     <>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Kelas yang Diwalikan</label>
-                        <select disabled={!isProfileEditing} value={profileData.waliKelasClass || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, waliKelasClass: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100">
+                        <select disabled={!isProfileEditing} value={profileData.waliKelasClass || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, waliKelasClass: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100">
                           <option value="">-- Pilih Kelas --</option>
                           {classList.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
@@ -3795,7 +3795,7 @@ export default function App() {
                           value={profileData.jumlahSiswaLakiLaki || ''} 
                           onChange={e => setProfileData((p: typeof profileData) => ({ ...p, jumlahSiswaLakiLaki: e.target.value }))} 
                           placeholder="Contoh: 18" 
-                          className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" 
+                          className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" 
                         />
                       </div>
 
@@ -3808,7 +3808,7 @@ export default function App() {
                           value={profileData.jumlahSiswaPerempuan || ''} 
                           onChange={e => setProfileData((p: typeof profileData) => ({ ...p, jumlahSiswaPerempuan: e.target.value }))} 
                           placeholder="Contoh: 18" 
-                          className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" 
+                          className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" 
                         />
                       </div>
                     </>
@@ -3816,7 +3816,7 @@ export default function App() {
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Semester</label>
-                    <select disabled={!isProfileEditing} value={profileData.semester} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, semester: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100">
+                    <select disabled={!isProfileEditing} value={profileData.semester} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, semester: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100">
                       <option value="Ganjil">Ganjil</option>
                       <option value="Genap">Genap</option>
                     </select>
@@ -3824,136 +3824,155 @@ export default function App() {
 
                   <div className="space-y-1.5 sm:col-span-2">
                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Tahun Pelajaran</label>
-                    <input type="text" disabled={!isProfileEditing} value={profileData.tahunPelajaran} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, tahunPelajaran: e.target.value }))} placeholder="Contoh: 2026/2027" className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
+                    <input type="text" disabled={!isProfileEditing} value={profileData.tahunPelajaran} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, tahunPelajaran: e.target.value }))} placeholder="Contoh: 2026/2027" className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
                   </div>
                 </div>
 
                 {/* Section Pejabat Penandatangan Laporan (Mengetahui) */}
-                <div className="mt-8 pt-6 border-t-2 border-dashed border-slate-200">
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">Opsi Tanda Tangan</span>
+                <div className="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
+                  <div className="mb-4 bg-emerald-50/60 border-2 border-emerald-200/80 rounded-2xl p-4">
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-black uppercase tracking-wider">Opsi Tanda Tangan</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase tracking-wider">Opsional / Boleh Kosong</span>
                       <h4 className="text-sm font-bold text-slate-800">Pejabat Penandatangan Laporan (Mengetahui - Kiri)</h4>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      Lengkapi nama dan NIP pejabat di bawah ini. Anda dapat memilih salah satu pejabat saat mencetak Laporan Presensi atau Laporan Wali Kelas.
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      <strong>Catatan untuk Guru Mapel:</strong> Bagian ini bersifat <em>opsional</em> (tidak wajib diisi). Guru Mapel cukup mengisi data pribadi & mata pelajaran di bagian atas. Jika nama pejabat dan NIP di bawah ini dikosongkan, data profil Anda <strong>tetap berhasil disimpan</strong> tanpa kendala, dan lembar tanda tangan laporan akan menyesuaikan otomatis.
                     </p>
                   </div>
 
                   <div className="space-y-4">
                     {/* Kepala Sekolah */}
-                    <div className="p-4 bg-slate-50 border-2 border-slate-200/80 rounded-2xl">
-                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        1. Kepala Sekolah
+                    <div className="p-4 bg-slate-50 border-2 border-slate-400 rounded-2xl shadow-xs">
+                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                          1. Kepala Sekolah
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-300">Opsional</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Kepala Sekolah</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.namaKepalaSekolah} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaKepalaSekolah: e.target.value }))} placeholder="Nama lengkap beserta gelar" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.namaKepalaSekolah} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaKepalaSekolah: e.target.value }))} placeholder="Nama lengkap beserta gelar (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Kepala Sekolah</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.nipKepalaSekolah} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipKepalaSekolah: e.target.value }))} placeholder="Nomor Induk Pegawai" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.nipKepalaSekolah} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipKepalaSekolah: e.target.value }))} placeholder="Nomor Induk Pegawai (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                       </div>
                     </div>
 
                     {/* Pihak Kurikulum */}
-                    <div className="p-4 bg-slate-50 border-2 border-slate-200/80 rounded-2xl">
-                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                        2. Pihak Kurikulum (Wakasek Kurikulum)
+                    <div className="p-4 bg-slate-50 border-2 border-slate-400 rounded-2xl shadow-xs">
+                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                          2. Pihak Kurikulum (Wakasek Kurikulum)
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-300">Opsional</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Pihak Kurikulum</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.namaKurikulum || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaKurikulum: e.target.value }))} placeholder="Nama pejabat kurikulum" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.namaKurikulum || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaKurikulum: e.target.value }))} placeholder="Nama pejabat kurikulum (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Pihak Kurikulum</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.nipKurikulum || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipKurikulum: e.target.value }))} placeholder="NIP pejabat kurikulum" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.nipKurikulum || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipKurikulum: e.target.value }))} placeholder="NIP pejabat kurikulum (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                       </div>
                     </div>
 
                     {/* Pihak Kesiswaan */}
-                    <div className="p-4 bg-slate-50 border-2 border-slate-200/80 rounded-2xl">
-                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        3. Pihak Kesiswaan (Wakasek Kesiswaan)
+                    <div className="p-4 bg-slate-50 border-2 border-slate-400 rounded-2xl shadow-xs">
+                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                          3. Pihak Kesiswaan (Wakasek Kesiswaan)
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-300">Opsional</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Pihak Kesiswaan</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.namaKesiswaan || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaKesiswaan: e.target.value }))} placeholder="Nama pejabat kesiswaan" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.namaKesiswaan || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaKesiswaan: e.target.value }))} placeholder="Nama pejabat kesiswaan (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Pihak Kesiswaan</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.nipKesiswaan || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipKesiswaan: e.target.value }))} placeholder="NIP pejabat kesiswaan" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.nipKesiswaan || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipKesiswaan: e.target.value }))} placeholder="NIP pejabat kesiswaan (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                       </div>
                     </div>
 
                     {/* Guru Wali */}
-                    <div className="p-4 bg-slate-50 border-2 border-slate-200/80 rounded-2xl">
-                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                        4. Guru Wali / Koordinator Guru Wali
+                    <div className="p-4 bg-slate-50 border-2 border-slate-400 rounded-2xl shadow-xs">
+                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                          4. Guru Wali / Koordinator Guru Wali
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-300">Opsional</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Guru Wali</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.namaGuruWali || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaGuruWali: e.target.value }))} placeholder="Nama guru wali" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.namaGuruWali || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaGuruWali: e.target.value }))} placeholder="Nama guru wali (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Guru Wali</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.nipGuruWali || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipGuruWali: e.target.value }))} placeholder="NIP guru wali" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.nipGuruWali || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipGuruWali: e.target.value }))} placeholder="NIP guru wali (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                       </div>
                     </div>
 
                     {/* Guru BK */}
-                    <div className="p-4 bg-slate-50 border-2 border-slate-200/80 rounded-2xl">
-                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-teal-500"></span>
-                        5. Guru BK / Bimbingan Konseling
+                    <div className="p-4 bg-slate-50 border-2 border-slate-400 rounded-2xl shadow-xs">
+                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                          5. Guru BK / Bimbingan Konseling
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-300">Opsional</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Guru BK</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.namaBK || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaBK: e.target.value }))} placeholder="Nama guru BK" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.namaBK || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaBK: e.target.value }))} placeholder="Nama guru BK (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Guru BK</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.nipBK || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipBK: e.target.value }))} placeholder="NIP guru BK" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.nipBK || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipBK: e.target.value }))} placeholder="NIP guru BK (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                       </div>
                     </div>
 
                     {/* Wakasek Humas */}
-                    <div className="p-4 bg-slate-50 border-2 border-slate-200/80 rounded-2xl">
-                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                        6. Wakil Kepala Sekolah Bidang Humas (Hubungan Masyarakat)
+                    <div className="p-4 bg-slate-50 border-2 border-slate-400 rounded-2xl shadow-xs">
+                      <div className="text-xs font-bold text-slate-700 mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                          6. Wakil Kepala Sekolah Bidang Humas (Hubungan Masyarakat)
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-300">Opsional</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Wakasek Humas</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.namaHumas || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaHumas: e.target.value }))} placeholder="Nama pejabat humas" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.namaHumas || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaHumas: e.target.value }))} placeholder="Nama pejabat humas (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Wakasek Humas</label>
-                          <input type="text" disabled={!isProfileEditing} value={profileData.nipHumas || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipHumas: e.target.value }))} placeholder="NIP pejabat humas" className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                          <input type="text" disabled={!isProfileEditing} value={profileData.nipHumas || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipHumas: e.target.value }))} placeholder="NIP pejabat humas (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-full bg-white border border-slate-100 rounded-[1.5rem] p-6 shadow-sm mb-8 text-left space-y-6">
+                <div className="w-full bg-white border-2 border-slate-400 rounded-[1.5rem] p-6 shadow-sm mb-8 text-left space-y-6">
                   {/* Header Statistik */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-slate-200 pb-5">
                     <div className="flex items-center gap-3">
                       <div className="p-2.5 bg-blue-50 rounded-2xl text-blue-600 shadow-xs">
                         <Activity className="w-6 h-6" />
@@ -4109,7 +4128,7 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="bg-white rounded-2xl border-2 border-slate-400 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
@@ -4185,7 +4204,6 @@ export default function App() {
                     </button>
                     <button 
                       onClick={async () => {
-                        if (!activeAuth.currentUser) return;
                         setIsProfileSaving(true);
                         trackOp('write', 1);
                         try {
@@ -4218,49 +4236,57 @@ export default function App() {
                             jumlahSiswaPerempuan: profileData.jumlahSiswaPerempuan || 0
                           };
 
+                          // 1. Immediately update state so UI updates instantaneously
+                          setProfileData(cleanProfileData);
+
+                          // 2. Immediately persist to localStorage for instant offline & reload resilience
+                          if (activeUserCustomData?.username) {
+                            safeSetLocalStorage(`kaguci_profile_${activeUserCustomData.username.toLowerCase().trim()}`, JSON.stringify(cleanProfileData));
+                          }
+                          safeSetLocalStorage('kaguci_profile_cache', JSON.stringify(cleanProfileData));
+
                           const savePayload = {
                             profileData: cleanProfileData, // Correct nested format
                             ...cleanProfileData
                           };
                           
-                          // Save to activeDb (private database) but gracefully handle custom firestore permission rules
-                          const savePromise = setDoc(doc(activeDb, 'users', activeAuth.currentUser.uid), savePayload, { merge: true })
-                            .catch(err => {
-                              const msg = err instanceof Error ? err.message : String(err);
-                              if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('insufficient')) {
-                                console.warn('Gagal menyimpan profil ke database mandiri (Rules ditolak). Mengandalkan pencadangan pusat kaguci gratis.');
-                                return; // Let the promise resolve to proceed seamlessly with the central backup
-                              }
-                              throw err;
-                            });
-                          
-                          // Backup disabled to save quota
+                          // 3. Sync to Firestore in activeDb and central custom_accounts if available
+                          const syncPromises: Promise<unknown>[] = [];
+
+                          if (activeAuth.currentUser) {
+                            syncPromises.push(
+                              setDoc(doc(activeDb, 'users', activeAuth.currentUser.uid), savePayload, { merge: true })
+                                .catch(err => {
+                                  console.warn('Sync profile to activeDb users warning:', err);
+                                })
+                            );
+                          }
+
                           if (activeUserCustomData?.username) {
-                            // Backup disabled
+                            syncPromises.push(
+                              setDoc(doc(dbDefault, 'custom_accounts', activeUserCustomData.username.toLowerCase().trim()), {
+                                profileData: cleanProfileData,
+                                ...(cleanProfileData.namaGuruMapel ? { fullname: cleanProfileData.namaGuruMapel } : {})
+                              }, { merge: true })
+                                .catch(err => {
+                                  console.warn('Sync profile to central custom_accounts warning:', err);
+                                })
+                            );
                           }
                           
-                          
-                          // Race against a short timeout to guarantee instant performance (Firestore syncs in background anyway)
-                          const timeoutPromise = new Promise<void>((_, reject) => 
-                            setTimeout(() => reject(new Error('timeout')), 1500)
+                          // Race with a generous 4-second timeout; if sync takes longer, it continues in background without failing UI
+                          const timeoutPromise = new Promise<void>((resolve) => 
+                            setTimeout(() => resolve(), 4000)
                           );
                           
-                          try {
-                            await Promise.race([savePromise, timeoutPromise]);
-                          } catch (raceError) {
-                            if (raceError instanceof Error && raceError.message === 'timeout') {
-                              console.warn("Profile save server-sync timed out. Proceeding since local cache is updated.");
-                            } else {
-                              throw raceError;
-                            }
-                          }
+                          await Promise.race([Promise.all(syncPromises), timeoutPromise]);
                           
-                          showToast('Profile Berhasil Disimpan', 'success');
+                          showToast('Profil Berhasil Disimpan', 'success');
                           setIsProfileEditing(false);
                         } catch (err) {
                           console.error('Error saving profile:', err);
-                          handleFirestoreError(err, OperationType.WRITE, 'users');
-                          showToast('Gagal menyimpan profil: ' + (err instanceof Error ? err.message : 'Server error'), 'error');
+                          showToast('Profil Berhasil Disimpan di Perangkat Anda', 'success');
+                          setIsProfileEditing(false);
                         } finally {
                           setIsProfileSaving(false);
                         }
@@ -4281,7 +4307,7 @@ export default function App() {
               {isAdmin && (
                 <>
                   <div className="w-full h-px bg-slate-100 mb-6"></div>
-                  <div className="w-full mb-8 text-left bg-white border border-slate-150 rounded-[1.5rem] p-6 shadow-sm">
+                  <div className="w-full mb-8 text-left bg-white border-2 border-slate-400 rounded-[1.5rem] p-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                       <div className="flex items-center gap-2.5">
                         <div className="p-2 bg-emerald-50 rounded-lg text-[#8dc63f]">
@@ -4300,7 +4326,7 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="bg-slate-50/50 border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
+                    <div className="bg-slate-50/50 border-2 border-slate-400 rounded-2xl overflow-hidden shadow-xs">
                       {isLoadingUsers ? (
                         <div className="p-12 flex flex-col items-center justify-center gap-2.5 text-slate-500">
                           <span className="w-6 h-6 border-2 border-[#8dc63f] border-t-transparent rounded-full animate-spin"></span>
@@ -4448,7 +4474,7 @@ export default function App() {
 
 
               {/* Maintenance & Reset Data Section */}
-              <div className="w-full mb-8 text-left bg-stone-50 border-2 border-slate-300 rounded-2xl p-5">
+              <div className="w-full mb-8 text-left bg-stone-50 border-2 border-slate-400 rounded-2xl p-5">
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
                   Pusat Pemeliharaan &amp; Reset Data
@@ -4467,7 +4493,7 @@ export default function App() {
                       setNewSemesterChoice(profileData.semester === 'Ganjil' ? 'Genap' : 'Ganjil');
                       setNewTahunPelajaran(profileData.tahunPelajaran || '');
                     }}
-                    className="flex flex-col items-start gap-1.5 p-4 bg-white hover:bg-emerald-50/50 border-2 border-slate-300 hover:border-emerald-300 rounded-xl transition-all text-left group cursor-pointer"
+                    className="flex flex-col items-start gap-1.5 p-4 bg-white hover:bg-emerald-50/50 border-2 border-slate-400 hover:border-emerald-300 rounded-xl transition-all text-left group cursor-pointer"
                   >
                     <span className="flex items-center gap-2 text-xs font-bold text-slate-700 group-hover:text-emerald-800 transition-colors">
                       <span className="p-1 px-1.5 bg-emerald-100 rounded text-emerald-800 text-[10px] font-black">SEM</span>
@@ -4485,7 +4511,7 @@ export default function App() {
                       setResetPasswordInput('');
                       setResetPasswordError('');
                     }}
-                    className="flex flex-col items-start gap-1.5 p-4 bg-white hover:bg-amber-50/50 border-2 border-slate-300 hover:border-amber-200 rounded-xl transition-all text-left group cursor-pointer"
+                    className="flex flex-col items-start gap-1.5 p-4 bg-white hover:bg-amber-50/50 border-2 border-slate-400 hover:border-amber-200 rounded-xl transition-all text-left group cursor-pointer"
                   >
                     <span className="flex items-center gap-2 text-xs font-bold text-slate-700 group-hover:text-amber-800 transition-colors">
                       <span className="p-1 px-1.5 bg-amber-100 rounded text-amber-700 text-[10px] font-black">TA</span>
@@ -4503,7 +4529,7 @@ export default function App() {
                       setResetPasswordInput('');
                       setResetPasswordError('');
                     }}
-                    className="flex flex-col items-start gap-1.5 p-4 bg-white hover:bg-rose-50/50 border-2 border-slate-300 hover:border-rose-200 rounded-xl transition-all text-left group cursor-pointer"
+                    className="flex flex-col items-start gap-1.5 p-4 bg-white hover:bg-rose-50/50 border-2 border-slate-400 hover:border-rose-200 rounded-xl transition-all text-left group cursor-pointer"
                   >
                     <span className="flex items-center gap-2 text-xs font-bold text-slate-700 group-hover:text-rose-800 transition-colors">
                       <span className="p-1 px-1.5 bg-rose-100 rounded text-rose-700 text-[10px] font-black">ALL</span>
@@ -5694,7 +5720,7 @@ export default function App() {
       {/* Persistence / Connectivity Banners - OLD REMOVED */}
 
       {/* Header */}
-      <header className="bg-white px-6 py-3.5 flex justify-between items-center border-b border-slate-100 z-40 shadow-[0_2px_15px_rgba(148,163,184,0.03)] shrink-0 print:hidden">
+      <header className="bg-white px-6 py-3.5 flex justify-between items-center border-b-2 border-slate-400 z-40 shadow-[0_2px_15px_rgba(148,163,184,0.03)] shrink-0 print:hidden">
         <div className="flex items-center gap-3">
           <img src="https://drive.google.com/thumbnail?id=1P395tuZymxs3qero4XduMpHy7g2GJrdR&sz=w1000" alt="Logo" className="w-10 h-10 object-contain drop-shadow-sm" referrerPolicy="no-referrer" />
           <div>
@@ -5854,7 +5880,7 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl max-w-md w-full space-y-6 border border-slate-100 text-left"
+                className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl max-w-md w-full space-y-6 border-2 border-slate-400 text-left"
               >
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-2xl ${resetModalType === 'new_semester' ? 'bg-emerald-50 text-[#8dc63f]' : resetModalType === 'new_year' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'}`}>
@@ -5929,7 +5955,7 @@ export default function App() {
                         <select 
                           value={newSemesterChoice} 
                           onChange={e => setNewSemesterChoice(e.target.value as 'Ganjil' | 'Genap')}
-                          className="w-full px-3 py-2.5 bg-stone-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 text-xs font-bold text-slate-800"
+                          className="w-full px-3 py-2.5 bg-stone-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 text-xs font-bold text-slate-800"
                         >
                           <option value="Ganjil">Semester Ganjil</option>
                           <option value="Genap">Semester Genap</option>
@@ -5943,7 +5969,7 @@ export default function App() {
                           value={newTahunPelajaran} 
                           onChange={e => setNewTahunPelajaran(e.target.value)}
                           placeholder="Contoh: 2026/2027"
-                          className="w-full px-3 py-2.5 bg-stone-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 text-xs font-bold text-slate-800"
+                          className="w-full px-3 py-2.5 bg-stone-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 text-xs font-bold text-slate-800"
                         />
                       </div>
                     </div>
@@ -5962,7 +5988,7 @@ export default function App() {
                             if (resetPasswordError) setResetPasswordError('');
                           }}
                           placeholder="Masukkan kata sandi akun Anda"
-                          className="w-full px-4 py-3 pr-11 bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-bold text-slate-800 disabled:opacity-50"
+                          className="w-full px-4 py-3 pr-11 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-bold text-slate-800 disabled:opacity-50"
                         />
                         <button
                           type="button"
@@ -5993,13 +6019,13 @@ export default function App() {
                       value={resetConfirmInput}
                       onChange={e => setResetConfirmInput(e.target.value)}
                       placeholder={`Ketik ${resetModalType === 'everything' ? 'RESET' : 'HAPUS'}`}
-                      className="w-full px-4 py-3 bg-stone-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition-all font-mono font-bold text-slate-800 tracking-widest text-center disabled:opacity-50"
+                      className="w-full px-4 py-3 bg-stone-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition-all font-mono font-bold text-slate-800 tracking-widest text-center disabled:opacity-50"
                     />
                   </div>
                 )}
 
                 {isResettingData && (
-                  <div className="space-y-2 py-2 bg-slate-50 p-4 rounded-2xl border-2 border-slate-300/50">
+                  <div className="space-y-2 py-2 bg-slate-50 p-4 rounded-2xl border-2 border-slate-400/50">
                     <div className="flex justify-between items-center text-[10px] font-black tracking-wider text-slate-600 uppercase font-sans">
                       <span>Proses Reset Berlangsung...</span>
                       <span className="font-mono text-slate-800 text-xs font-bold bg-white px-2 py-0.5 rounded-full border border-slate-100">{resetProgress}%</span>
@@ -6230,7 +6256,7 @@ export default function App() {
                  initial={{ opacity: 0, scale: 0.95, y: 15 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                 className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-2xl max-w-md w-full space-y-6 text-center relative border border-slate-100"
+                className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-2xl max-w-md w-full space-y-6 text-center relative border-2 border-slate-400"
               >
                 <div className="absolute top-0 left-0 right-0 h-2 bg-rose-500 rounded-t-[2rem]" />
 
@@ -6296,7 +6322,7 @@ export default function App() {
                  initial={{ opacity: 0, scale: 0.95, y: 15 }}
                  animate={{ opacity: 1, scale: 1, y: 0 }}
                  exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                 className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-2xl max-w-sm w-full space-y-6 text-left relative border border-slate-100"
+                 className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-2xl max-w-sm w-full space-y-6 text-left relative border-2 border-slate-400"
               >
                 <div className="absolute top-0 left-0 right-0 h-2 bg-indigo-600 rounded-t-[2rem]" />
 
@@ -6323,7 +6349,7 @@ export default function App() {
                        type="text" 
                        value={userToEdit.username} 
                        disabled 
-                       className="w-full bg-slate-100 border-2 border-slate-300 text-slate-500 font-mono text-xs rounded-xl px-4 py-2.5 cursor-not-allowed opacity-80"
+                       className="w-full bg-slate-100 border-2 border-slate-400 text-slate-500 font-mono text-xs rounded-xl px-4 py-2.5 cursor-not-allowed opacity-80"
                        title="Username tidak dapat diubah"
                     />
                     <span className="text-[9px] text-slate-500 italic mt-1 block">Username/User ID bersifat permanen & unik.</span>
@@ -6338,7 +6364,7 @@ export default function App() {
                        value={editFullname} 
                        onChange={(e) => setEditFullname(e.target.value)}
                        placeholder="Contoh: Budi Santoso, S.Pd."
-                       className="w-full bg-slate-50 border-2 border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-hidden font-bold text-slate-800 text-xs rounded-xl px-4 py-2.5 transition-all text-slate-800"
+                       className="w-full bg-slate-50 border-2 border-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-hidden font-bold text-slate-800 text-xs rounded-xl px-4 py-2.5 transition-all text-slate-800"
                     />
                   </div>
 
@@ -6351,7 +6377,7 @@ export default function App() {
                        value={editPassword} 
                        onChange={(e) => setEditPassword(e.target.value)}
                        placeholder="Sandi minimal 4 karakter"
-                       className="w-full bg-slate-50 border-2 border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-hidden font-bold text-slate-800 text-xs rounded-xl px-4 py-2.5 transition-all font-mono text-slate-800"
+                       className="w-full bg-slate-50 border-2 border-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-hidden font-bold text-slate-800 text-xs rounded-xl px-4 py-2.5 transition-all font-mono text-slate-800"
                     />
                   </div>
                 </div>
@@ -6395,7 +6421,7 @@ export default function App() {
                    initial={{ scale: 0.95, opacity: 0, y: 10 }}
                    animate={{ scale: 1, opacity: 1, y: 0 }}
                    exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                   className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden border border-slate-100"
+                   className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden border-2 border-slate-400"
                 >
                    {importResult.error ? (
                      // State error/gagal
@@ -6418,7 +6444,7 @@ export default function App() {
                         {importResult.details && importResult.details.length > 0 && (
                           <div className="text-left space-y-1.5 my-3">
                             <p className="text-[10px] font-black text-slate-600 uppercase tracking-wider">Riwayat Log / Catatan Pemeriksaan:</p>
-                            <div className="max-h-24 overflow-y-auto rounded-xl bg-slate-50 border-2 border-slate-300/50 p-2 text-[11px] text-slate-600 font-medium space-y-1">
+                            <div className="max-h-24 overflow-y-auto rounded-xl bg-slate-50 border-2 border-slate-400/50 p-2 text-[11px] text-slate-600 font-medium space-y-1">
                               {importResult.details.map((detail, idx) => (
                                 <div key={idx} className="flex gap-1 items-start">
                                   <span className="shrink-0 text-slate-500">•</span>
@@ -6782,7 +6808,7 @@ export default function App() {
 
 
       {/* Bottom Nav */}
-      <footer className="bg-white border-t border-slate-100/80 px-2 py-3 grid grid-cols-4 gap-1.5 z-40 shadow-[0_-4px_22px_rgba(148,163,184,0.06)] shrink-0 print:hidden">
+      <footer className="bg-white border-t-2 border-slate-300 px-2 py-3 grid grid-cols-4 gap-1.5 z-40 shadow-[0_-4px_22px_rgba(148,163,184,0.06)] shrink-0 print:hidden">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
