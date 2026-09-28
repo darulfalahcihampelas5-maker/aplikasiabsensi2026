@@ -431,7 +431,7 @@ export default function StudentGradesView({
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [classList, assignments, activeDb, activeAuth]);
+  }, [classList, assignments, activeDb, activeAuth, trackOp]);
 
   // Filtered assignments for currently selected class in Input mode
   const currentClassAssignmentsInput = useMemo(() => {
@@ -715,9 +715,9 @@ export default function StudentGradesView({
 
   // Helper: Calculate attendance percentage (rounded integer, no '%' symbol, no decimals)
   const getStudentAttendanceScore = (studentId: string, className: string): number => {
-    if (!attendanceSessions || attendanceSessions.length === 0) return 100;
+    if (!attendanceSessions || attendanceSessions.length === 0) return 0;
     const classSessions = attendanceSessions.filter((s) => s.className === className);
-    if (classSessions.length === 0) return 100;
+    if (classSessions.length === 0) return 0;
 
     let totalRecorded = 0;
     let hadirCount = 0;
@@ -732,7 +732,7 @@ export default function StudentGradesView({
       }
     });
 
-    if (totalRecorded === 0) return 100;
+    if (totalRecorded === 0) return 0;
     return Math.round((hadirCount / totalRecorded) * 100);
   };
 

@@ -1295,7 +1295,7 @@ export default function App() {
     } finally {
       setIsLoadingUsers(false);
     }
-  }, [isAdmin, activeUserCustomData, profileData.namaGuruMapel]);
+  }, [isAdmin, activeUserCustomData, profileData.namaGuruMapel, trackOp]);
 
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
@@ -1571,7 +1571,7 @@ export default function App() {
         .catch(err => console.warn("Failed caching usage", err))
         .finally(() => setIsLoadingUsage(false));
     }
-  }, [activeTab, isLoggedIn, cycleInfo.cycleKey]);
+  }, [activeTab, isLoggedIn, cycleInfo.cycleKey, trackOp]);
 
   // Monitor account deletion for custom generated accounts only
   useEffect(() => {
@@ -1624,7 +1624,7 @@ export default function App() {
     });
 
     return () => unsubscribe();
-  }, [isLoggedIn, isAuthLoading, activeUserCustomData, currentUser, activeAuth]);
+  }, [isLoggedIn, isAuthLoading, activeUserCustomData, currentUser, activeAuth, trackOp]);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [studentsLoaded, setStudentsLoaded] = useState(false);
