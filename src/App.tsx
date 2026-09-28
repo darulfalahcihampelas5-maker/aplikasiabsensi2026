@@ -4681,17 +4681,17 @@ export default function App() {
                 />
               </div>
 
-              <h1 className="text-slate-800 text-xl sm:text-2xl font-extrabold tracking-tight text-center">
+              <h1 className="text-[#8dc63f] text-xl sm:text-2xl font-black tracking-tight text-center drop-shadow-xs">
                 My Kaguci App
               </h1>
 
               {/* Animated Memuat Halaman Badge */}
-              <div className="flex items-center gap-2.5 mt-6 bg-slate-50 border border-slate-200/80 px-5 py-2 rounded-full shadow-xs">
+              <div className="flex items-center gap-2.5 mt-6 bg-[#8dc63f]/10 border border-[#8dc63f]/25 px-5 py-2 rounded-full shadow-xs">
                 <Loader2 className="w-4 h-4 text-[#8dc63f] animate-spin shrink-0" />
                 <motion.p
-                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                  className="text-slate-700 font-extrabold text-xs tracking-wider uppercase"
+                  className="text-[#6ea52b] font-black text-xs tracking-wider uppercase"
                 >
                   Memuat Halaman...
                 </motion.p>
