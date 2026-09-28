@@ -5728,58 +5728,67 @@ export default function App() {
       {/* Persistence / Connectivity Banners - OLD REMOVED */}
 
       {/* Header */}
-      <header className="bg-white px-6 py-3.5 flex justify-between items-center border-b-2 border-slate-400 z-40 shadow-[0_2px_15px_rgba(148,163,184,0.03)] shrink-0 print:hidden">
-        <div className="flex items-center gap-3">
-          <img src="https://drive.google.com/thumbnail?id=1P395tuZymxs3qero4XduMpHy7g2GJrdR&sz=w1000" alt="Logo" className="w-10 h-10 object-contain drop-shadow-sm" referrerPolicy="no-referrer" />
-          <div>
-            <h1 className="text-lg font-black text-[#8dc63f] tracking-tight leading-none scale-y-105 origin-left">My Kaguci App</h1>
-            <p className="text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-1">SMA Negeri 1 Cililin</p>
+      <header className="bg-white px-3 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center border-b-2 border-slate-400 z-40 shadow-[0_2px_15px_rgba(148,163,184,0.03)] shrink-0 print:hidden">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+          <img 
+            src="https://drive.google.com/thumbnail?id=1P395tuZymxs3qero4XduMpHy7g2GJrdR&sz=w1000" 
+            alt="Logo" 
+            className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-sm shrink-0" 
+            referrerPolicy="no-referrer" 
+          />
+          <div className="flex flex-col justify-center min-w-0">
+            <h1 className="text-[15px] sm:text-lg font-black text-[#8dc63f] tracking-tight leading-none scale-y-105 origin-left whitespace-nowrap select-none">
+              My Kaguci App
+            </h1>
+            <p className="text-[8.5px] sm:text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-0.5 sm:mt-1 whitespace-nowrap select-none">
+              SMA Negeri 1 Cililin
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Status Sinkronisasi Real-time Database */}
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+          <div className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold border transition-all ${
             !isOnline || !firebaseConnected || syncStatus === 'error'
               ? 'bg-rose-50 border-rose-100 text-rose-700 animate-pulse'
               : quotaExceeded
                 ? 'bg-amber-50 border-amber-100 text-amber-700'
                 : 'bg-emerald-50 border-emerald-100 text-[#7bc025]'
       }`} title={!isOnline ? 'Koneksi offline, data saat ini disimpan lokal di peramban' : (!firebaseConnected || syncStatus === 'error') ? 'Gagal sinkronisasi dengan database cloud' : quotaExceeded ? 'Kuota harian Firestore habis. Sinkronisasi cloud dijeda.' : `Koneksi Cloud stabil, sinkronisasi aktif otomatis${cloudLastSync ? ' (Terakhir: ' + cloudLastSync + ')' : ''}`}>
-            <span className={`w-2 h-2 rounded-full ${!isOnline || !firebaseConnected || syncStatus === 'error' ? 'bg-rose-500' : quotaExceeded ? 'bg-amber-500' : 'bg-[#8dc63f] animate-pulse'}`}></span>
+            <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${!isOnline || !firebaseConnected || syncStatus === 'error' ? 'bg-rose-500' : quotaExceeded ? 'bg-amber-500' : 'bg-[#8dc63f] animate-pulse'}`}></span>
             <div className="flex flex-col items-start leading-none gap-0.5">
-               <span className="hidden xs:inline text-[10px] sm:text-xs">{!isOnline ? 'Internet Putus' : (!firebaseConnected || syncStatus === 'error') ? 'Cloud Gagal' : quotaExceeded ? 'Limit Tercapai' : 'Cloud Terhubung'}</span>
-               <span className="xs:hidden text-[10px]">{!isOnline ? 'Offline' : (!firebaseConnected || syncStatus === 'error') ? 'Gagal' : quotaExceeded ? 'Limit' : 'Online'}</span>
+               <span className="hidden xs:inline text-[9px] sm:text-xs whitespace-nowrap">{!isOnline ? 'Internet Putus' : (!firebaseConnected || syncStatus === 'error') ? 'Cloud Gagal' : quotaExceeded ? 'Limit Tercapai' : 'Cloud Terhubung'}</span>
+               <span className="xs:hidden text-[9px] whitespace-nowrap">{!isOnline ? 'Offline' : (!firebaseConnected || syncStatus === 'error') ? 'Gagal' : quotaExceeded ? 'Limit' : 'Online'}</span>
                {cloudLastSync && isOnline && firebaseConnected && syncStatus !== 'error' && !quotaExceeded && (
-                 <span className="text-[8px] opacity-70 hidden sm:inline">Sync {cloudLastSync}</span>
+                 <span className="text-[8px] opacity-70 hidden sm:inline whitespace-nowrap">Sync {cloudLastSync}</span>
                )}
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-0.5 ml-1">
+          <div className="flex flex-col items-center gap-0.5 ml-0.5 sm:ml-1">
             <button 
               onClick={() => setActiveTab('profile')} 
-              className="relative w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 transition-all shadow-sm cursor-pointer flex items-center justify-center border border-slate-200 hover:scale-105 active:scale-95 overflow-hidden p-0"
+              className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 transition-all shadow-sm cursor-pointer flex items-center justify-center border border-slate-200 hover:scale-105 active:scale-95 overflow-hidden p-0"
               title="Menu Profil Pengguna"
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
               ) : (
-                <UserIcon className="w-5 h-5 text-slate-600" />
+                <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
               )}
-              <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 border-2 border-white rounded-full ${isOnline ? 'bg-[#8dc63f] animate-pulse' : 'bg-rose-500'}`}></span>
+              <span className={`absolute -top-0.5 -right-0.5 w-2 sm:w-2.5 h-2 sm:h-2.5 border-2 border-white rounded-full ${isOnline ? 'bg-[#8dc63f] animate-pulse' : 'bg-rose-500'}`}></span>
             </button>
-            <span className="text-[9px] font-black text-slate-600 uppercase tracking-wider leading-none">Profil</span>
+            <span className="text-[8px] sm:text-[9px] font-black text-slate-600 uppercase tracking-wider leading-none whitespace-nowrap">Profil</span>
           </div>
 
-          <div className="flex flex-col items-center gap-0.5 ml-1">
+          <div className="flex flex-col items-center gap-0.5 ml-0.5 sm:ml-1">
             <button 
               onClick={() => setShowLogoutConfirm(true)} 
-              className="w-10 h-10 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition-all shadow-sm cursor-pointer flex items-center justify-center border border-rose-100/50 hover:scale-105 active:scale-95"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition-all shadow-sm cursor-pointer flex items-center justify-center border border-rose-100/50 hover:scale-105 active:scale-95"
               title="Keluar dari Aplikasi"
             >
-              <Power className="w-5 h-5 stroke-[2.5]" />
+              <Power className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </button>
-            <span className="text-[9px] font-black text-rose-600 uppercase tracking-wider leading-none">Keluar</span>
+            <span className="text-[8px] sm:text-[9px] font-black text-rose-600 uppercase tracking-wider leading-none whitespace-nowrap">Keluar</span>
           </div>
         </div>
       </header>
