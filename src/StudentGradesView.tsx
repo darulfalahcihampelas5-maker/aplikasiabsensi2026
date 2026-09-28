@@ -18,7 +18,8 @@ import {
   X,
   Printer,
   FileDown,
-  UserCheck
+  UserCheck,
+  Sliders
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -86,6 +87,10 @@ export interface ProfileRecord {
   waliKelasClass?: string;
   tahunPelajaran?: string;
   semester?: string;
+  weightAttendance?: number;
+  weightAssignments?: number;
+  weightPTS?: number;
+  weightASAS?: number;
   [key: string]: unknown;
 }
 
@@ -149,6 +154,14 @@ export default function StudentGradesView({
       setActiveSubTab(initialSubTab);
     }
   }, [initialSubTab]);
+
+  // Weighting percentages states
+  const [weightAttendance, setWeightAttendance] = useState<number | ''>(10);
+  const [weightAssignments, setWeightAssignments] = useState<number | ''>(50);
+  const [weightPTS, setWeightPTS] = useState<number | ''>(20);
+  const [weightASAS, setWeightASAS] = useState<number | ''>(20);
+  const [isWeightEditing, setIsWeightEditing] = useState<boolean>(false);
+  const [isSavingWeight, setIsSavingWeight] = useState<boolean>(false);
 
   // Firestore Assignments state
   const [assignments, setAssignments] = useState<StudentAssignment[]>([]);
@@ -266,6 +279,41 @@ export default function StudentGradesView({
     }
   }, [classList, selectedClassInput, selectedClassPreview]);
 
+  // Sync Weights with Firestore & LocalStorage
+  useEffect(() => {
+    const uid = activeAuth?.currentUser?.uid || 'guest';
+    const storageKey = `kaguci_grade_weights_${uid}`;
+
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setWeightAttendance(parsed.attendance ?? 10);
+        setWeightAssignments(parsed.assignments ?? 50);
+        setWeightPTS(parsed.pts ?? 20);
+        setWeightASAS(parsed.asas ?? 20);
+      } catch (e) {
+        console.error('Error parsing local weights:', e);
+      }
+    }
+
+    if (!activeDb || !activeAuth?.currentUser) return;
+
+    const docRef = doc(activeDb, 'gradeWeights', uid);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setWeightAttendance(data.attendance ?? 10);
+        setWeightAssignments(data.assignments ?? 50);
+        setWeightPTS(data.pts ?? 20);
+        setWeightASAS(data.asas ?? 20);
+        safeSetLocalStorage(storageKey, JSON.stringify(data));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [activeDb, activeAuth]);
+
   // Sync Assignments with Firestore & LocalStorage
   useEffect(() => {
     const uid = activeAuth?.currentUser?.uid || 'guest';
@@ -306,6 +354,84 @@ export default function StudentGradesView({
 
     return () => unsubscribe();
   }, [activeDb, activeAuth]);
+
+  // Helper: Save weights
+  const handleSaveWeights = async () => {
+    const total = Number(weightAttendance || 0) + Number(weightAssignments || 0) + Number(weightPTS || 0) + Number(weightASAS || 0);
+    
+    if (total > 100) {
+      showToast?.('Total bobot tidak boleh melebihi 100%!', 'error');
+      return;
+    }
+    
+    if (total < 100) {
+      const confirmSave = window.confirm(`Total bobot saat ini adalah ${total}%. Yakin ingin menyimpan? (Idealnya 100%)`);
+      if (!confirmSave) return;
+    }
+
+    setIsSavingWeight(true);
+    const uid = activeAuth?.currentUser?.uid || 'guest';
+    const data = {
+      attendance: Number(weightAttendance || 0),
+      assignments: Number(weightAssignments || 0),
+      pts: Number(weightPTS || 0),
+      asas: Number(weightASAS || 0),
+      userId: uid,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      if (activeDb && activeAuth?.currentUser) {
+        await setDoc(doc(activeDb, 'gradeWeights', uid), data, { merge: true });
+        trackOp?.('write', 1);
+      }
+      const storageKey = `kaguci_grade_weights_${uid}`;
+      safeSetLocalStorage(storageKey, JSON.stringify(data));
+      setIsWeightEditing(false);
+      showToast?.('Bobot penilaian berhasil disimpan!', 'success');
+    } catch (err) {
+      console.error('Error saving weights:', err);
+      showToast?.('Gagal menyimpan bobot penilaian.', 'error');
+    } finally {
+      setIsSavingWeight(false);
+    }
+  };
+
+  // Logic: Ensure PTS and ASAS exist for every class
+  useEffect(() => {
+    if (!activeDb || !activeAuth?.currentUser || classList.length === 0) return;
+
+    const uid = activeAuth.currentUser.uid;
+    const ensureDefaultAssignments = async () => {
+      for (const className of classList) {
+        const defaults = ['PTS', 'ASAS'];
+        for (const title of defaults) {
+          const exists = assignments.some(a => a.className === className && a.title === title);
+          if (!exists) {
+            const id = `${uid}_${className.replace(/\s+/g, '_')}_${title}`;
+            const docRef = doc(activeDb, 'gradeAssignments', id);
+            await setDoc(docRef, {
+              id,
+              title,
+              className,
+              date: format(new Date(), 'yyyy-MM-dd'),
+              scores: {},
+              userId: uid,
+              createdAt: new Date().toISOString()
+            }, { merge: true });
+            trackOp?.('write', 1);
+          }
+        }
+      }
+    };
+
+    // Delay a bit to wait for initial assignments load
+    const timer = setTimeout(() => {
+      ensureDefaultAssignments();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [classList, assignments, activeDb, activeAuth]);
 
   // Filtered assignments for currently selected class in Input mode
   const currentClassAssignmentsInput = useMemo(() => {
@@ -608,6 +734,37 @@ export default function StudentGradesView({
 
     if (totalRecorded === 0) return 100;
     return Math.round((hadirCount / totalRecorded) * 100);
+  };
+
+  // Helper: Calculate Nilai Rapor based on weights
+  const calculateRaporScore = (studentId: string, className: string, assignmentsForClass: StudentAssignment[]) => {
+    const attendanceScore = getStudentAttendanceScore(studentId, className);
+    
+    const ptsAssign = assignmentsForClass.find(a => a.title.toUpperCase() === 'PTS');
+    const asasAssign = assignmentsForClass.find(a => a.title.toUpperCase() === 'ASAS');
+    const otherAssigns = assignmentsForClass.filter(a => a.title.toUpperCase() !== 'PTS' && a.title.toUpperCase() !== 'ASAS');
+
+    const ptsScore = ptsAssign?.scores?.[studentId] ? Number(ptsAssign.scores[studentId]) : 0;
+    const asasScore = asasAssign?.scores?.[studentId] ? Number(asasAssign.scores[studentId]) : 0;
+
+    let totalOther = 0;
+    let otherCount = 0;
+    otherAssigns.forEach(a => {
+      const s = a.scores?.[studentId];
+      if (s !== undefined && s !== null && s !== '' && !isNaN(Number(s))) {
+        totalOther += Number(s);
+        otherCount++;
+      }
+    });
+    const avgOther = otherCount > 0 ? totalOther / otherCount : 0;
+
+    // Weight calculation using state
+    const weightedAtt = (attendanceScore * Number(weightAttendance || 0)) / 100;
+    const weightedAsgn = (avgOther * Number(weightAssignments || 0)) / 100;
+    const weightedPTS = (ptsScore * Number(weightPTS || 0)) / 100;
+    const weightedASAS = (asasScore * Number(weightASAS || 0)) / 100;
+
+    return Math.round(weightedAtt + weightedAsgn + weightedPTS + weightedASAS);
   };
 
   // Handler: Build and export Styled Excel Workbook with official school header
@@ -969,6 +1126,13 @@ export default function StudentGradesView({
         const isNameCol = headerTitle === 'Nama Lengkap Siswa' || headerTitle === 'Nama Siswa';
         const isRaporCol = headerTitle === 'Nilai Rapor';
 
+        let cellValue = worksheet[ref].v;
+        if (isRaporCol) {
+          cellValue = calculateRaporScore(studentList[r - startDataRow].id, targetClass, assignmentList);
+          worksheet[ref].v = cellValue;
+          worksheet[ref].t = 'n';
+        }
+
         worksheet[ref].s = {
           font: {
             bold: isRaporCol,
@@ -1122,17 +1286,12 @@ export default function StudentGradesView({
         getStudentAttendanceScore(student.id, targetClass)
       ];
 
-      let totalScore = 0;
-      let gradedCount = 0;
-
       assignmentList.forEach((assign) => {
         const val = assign.scores?.[student.id];
         if (val !== undefined && val !== null && val !== '') {
           const num = Number(val);
           if (!isNaN(num)) {
             row.push(num);
-            totalScore += num;
-            gradedCount++;
           } else {
             row.push(String(val));
           }
@@ -1142,7 +1301,7 @@ export default function StudentGradesView({
       });
 
       if (assignmentList.length > 0) {
-        row.push(gradedCount > 0 ? Math.round(totalScore / gradedCount) : '-');
+        row.push(calculateRaporScore(student.id, targetClass, assignmentList));
       }
 
       return row;
@@ -1158,14 +1317,15 @@ export default function StudentGradesView({
       3: { halign: 'center', cellWidth: 20 }
     };
 
-    // Ensure all assignment and score columns are centered
-    for (let i = 4; i < tableHeaders.length; i++) {
-      columnStyles[i] = { halign: 'center' };
+    // Ensure all assignment and score columns are centered (Horizontally and Vertically)
+    for (let i = 3; i < tableHeaders.length; i++) {
+      columnStyles[i] = { halign: 'center', valign: 'middle' };
     }
 
     if (assignmentList.length > 0) {
       columnStyles[tableHeaders.length - 1] = {
         halign: 'center',
+        valign: 'middle',
         fontStyle: 'bold',
         fillColor: [240, 253, 244]
       };
@@ -1181,6 +1341,7 @@ export default function StudentGradesView({
         textColor: [15, 23, 42],
         fontStyle: 'bold',
         halign: 'center',
+        valign: 'middle',
         fontSize: 8.5,
         lineWidth: 0.2,
         lineColor: [0, 0, 0]
@@ -1190,7 +1351,8 @@ export default function StudentGradesView({
         cellPadding: 2,
         lineWidth: 0.2,
         lineColor: [0, 0, 0],
-        textColor: [30, 41, 59]
+        textColor: [30, 41, 59],
+        valign: 'middle'
       },
       columnStyles
     };
@@ -1254,7 +1416,7 @@ export default function StudentGradesView({
       if (teacherNIP) doc.text(teacherNIP, rightX, sigY + 30);
     } else {
       const activeLeft = leftSigner.enabled ? leftSigner : (midSigner.enabled ? midSigner : null);
-      const rightX = pageWidth - 80;
+      const rightX = pageWidth - 75;
 
       if (activeLeft) {
         const leftX = 20;
@@ -1283,34 +1445,29 @@ export default function StudentGradesView({
         const blob = doc.output('blob');
         const url = URL.createObjectURL(blob);
         
-        // Open a blank window and inject an iframe for the PDF
-        // This is extremely compatible and avoids many "blank page" issues with direct blob URL tabs
-        const win = window.open('', '_blank');
-        if (win) {
-          win.document.write(`
-            <html>
-              <head>
-                <title>Cetak PDF F4 - ${targetClass}</title>
-                <style>
-                  body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-                  iframe { width: 100%; height: 100%; border: none; }
-                </style>
-              </head>
-              <body>
-                <iframe src="${url}"></iframe>
-              </body>
-            </html>
-          `);
-          win.document.close();
-          showToast?.('Dokumen sedang dibuka untuk dicetak...', 'info');
-        } else {
-          doc.save(fileName);
-          showToast?.('Gagal membuka jendela cetak (Popup terblokir). File diunduh otomatis.', 'warning');
-        }
+        // Use a hidden iframe for more reliable direct printing
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        
+        iframe.onload = () => {
+          setTimeout(() => {
+            if (iframe.contentWindow) {
+              iframe.contentWindow.print();
+              showToast?.('Perintah cetak dikirim ke printer...', 'success');
+            }
+            // Cleanup after print dialog is closed or dismissed (approximate)
+            setTimeout(() => {
+              document.body.removeChild(iframe);
+              URL.revokeObjectURL(url);
+            }, 3000);
+          }, 500);
+        };
       } catch (err) {
         console.error('Print error:', err);
         doc.save(fileName);
-        showToast?.('Gagal memproses cetak. File diunduh sebagai cadangan.', 'warning');
+        showToast?.('Gagal memproses cetak langsung. File diunduh sebagai cadangan.', 'warning');
       }
     } else {
       doc.save(fileName);
@@ -1320,13 +1477,7 @@ export default function StudentGradesView({
 
   // Handler: Export Preview Nilai to Excel (.xlsx)
   const handleExportExcelPreview = () => {
-    generateAndExportExcel(selectedClassPreview, studentsInPreviewClass, activeAssignmentsColumns);
-  };
-
-  // Handler: Export Input Nilai to Excel (.xlsx)
-  const handleExportExcelInput = () => {
-    const assignmentsForClass = currentClassAssignmentsInput.slice().sort((a, b) => a.date.localeCompare(b.date));
-    generateAndExportExcel(selectedClassInput, studentsInInputClass, assignmentsForClass);
+    generateAndExportExcel(selectedClassPreview, studentsInPreviewClass, classAssignmentsPreview);
   };
 
   // Handler: Print / Download PDF
@@ -1343,7 +1494,7 @@ export default function StudentGradesView({
           generateAndExportPDF(
             selectedClassPreview,
             studentsInPreviewClass,
-            activeAssignmentsColumns,
+            classAssignmentsPreview,
             action,
             printOrientationOption
           );
@@ -1521,6 +1672,107 @@ export default function StudentGradesView({
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Row 4: Konfigurasi Bobot Penilaian */}
+                <div className="space-y-3 pt-3 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Sliders className="w-3.5 h-3.5 text-[#8dc63f]" />
+                      Konfigurasi Bobot Penilaian Rapor (%)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {!isWeightEditing ? (
+                        <button
+                          type="button"
+                          onClick={() => setIsWeightEditing(true)}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1.5"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          Edit Bobot
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsWeightEditing(false)}
+                            className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-500 text-[10px] font-bold rounded-lg transition-all"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isSavingWeight}
+                            onClick={handleSaveWeights}
+                            className="px-3 py-1.5 bg-[#8dc63f] hover:bg-[#7bc025] text-white text-[10px] font-black rounded-lg transition-all shadow-sm flex items-center gap-1.5"
+                          >
+                            {isSavingWeight ? (
+                              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            ) : (
+                              <Save className="w-3 h-3" />
+                            )}
+                            Simpan Bobot
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Kehadiran (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        disabled={!isWeightEditing}
+                        value={weightAttendance}
+                        onChange={(e) => setWeightAttendance(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-black text-slate-800 text-xs focus:ring-2 focus:ring-[#8dc63f]/20 focus:border-[#8dc63f] outline-none transition-all disabled:bg-slate-100/50 disabled:text-slate-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Tugas & UH (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        disabled={!isWeightEditing}
+                        value={weightAssignments}
+                        onChange={(e) => setWeightAssignments(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-black text-slate-800 text-xs focus:ring-2 focus:ring-[#8dc63f]/20 focus:border-[#8dc63f] outline-none transition-all disabled:bg-slate-100/50 disabled:text-slate-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">PTS (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        disabled={!isWeightEditing}
+                        value={weightPTS}
+                        onChange={(e) => setWeightPTS(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-black text-slate-800 text-xs focus:ring-2 focus:ring-[#8dc63f]/20 focus:border-[#8dc63f] outline-none transition-all disabled:bg-slate-100/50 disabled:text-slate-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">ASAS (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        disabled={!isWeightEditing}
+                        value={weightASAS}
+                        onChange={(e) => setWeightASAS(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-black text-slate-800 text-xs focus:ring-2 focus:ring-[#8dc63f]/20 focus:border-[#8dc63f] outline-none transition-all disabled:bg-slate-100/50 disabled:text-slate-500"
+                      />
+                    </div>
+                  </div>
+                  {isWeightEditing && (
+                    <div className={`text-[10px] font-bold text-center py-1 rounded-lg ${Number(weightAttendance || 0) + Number(weightAssignments || 0) + Number(weightPTS || 0) + Number(weightASAS || 0) === 100 ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50'}`}>
+                      Total Bobot: {Number(weightAttendance || 0) + Number(weightAssignments || 0) + Number(weightPTS || 0) + Number(weightASAS || 0)}% {Number(weightAttendance || 0) + Number(weightAssignments || 0) + Number(weightPTS || 0) + Number(weightASAS || 0) !== 100 && '(Idealnya 100%)'}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1854,9 +2106,6 @@ export default function StudentGradesView({
                       </thead>
                       <tbody className="bg-white">
                         {studentsInPreviewClass.map((student, idx) => {
-                          let totalScore = 0;
-                          let gradedCount = 0;
-
                           return (
                             <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
                               <td className="p-3 sm:p-3.5 text-center font-bold text-slate-600 border border-slate-300">{idx + 1}</td>
@@ -1889,13 +2138,9 @@ export default function StudentGradesView({
                               })}
 
                               {/* Nilai Rapor Column */}
-                              {activeAssignmentsColumns.length > 0 && (
+                              {classAssignmentsPreview.length > 0 && (
                                 <td className="p-3 sm:p-3.5 text-center font-black text-[#5a8c20] bg-[#8dc63f]/10 text-xs sm:text-sm border border-slate-300">
-                                  {gradedCount > 0 ? (
-                                    Math.round(totalScore / gradedCount)
-                                  ) : (
-                                    <span className="text-slate-400 font-medium">-</span>
-                                  )}
+                                  {calculateRaporScore(student.id, selectedClassPreview, classAssignmentsPreview)}
                                 </td>
                               )}
                             </tr>

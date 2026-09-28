@@ -49,5 +49,10 @@ service cloud.firestore {
     match /gradeAssignments/{assignmentId} {
       allow read, write: if isSignedIn();
     }
+
+    // gradeWeights collection rules
+    match /gradeWeights/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
   }
 }

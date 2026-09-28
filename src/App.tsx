@@ -1119,7 +1119,11 @@ export default function App() {
       role: 'Guru Mapel',
       waliKelasClass: '',
       jumlahSiswaLakiLaki: '',
-      jumlahSiswaPerempuan: ''
+      jumlahSiswaPerempuan: '',
+      weightAttendance: 10,
+      weightAssignments: 40,
+      weightPTS: 25,
+      weightASAS: 25
     };
   });
 
@@ -4233,7 +4237,11 @@ export default function App() {
                             role: profileData.role || 'Guru Mapel',
                             waliKelasClass: profileData.waliKelasClass || '',
                             jumlahSiswaLakiLaki: profileData.jumlahSiswaLakiLaki || 0,
-                            jumlahSiswaPerempuan: profileData.jumlahSiswaPerempuan || 0
+                            jumlahSiswaPerempuan: profileData.jumlahSiswaPerempuan || 0,
+                            weightAttendance: profileData.weightAttendance ?? 10,
+                            weightAssignments: profileData.weightAssignments ?? 40,
+                            weightPTS: profileData.weightPTS ?? 25,
+                            weightASAS: profileData.weightASAS ?? 25
                           };
 
                           // 1. Immediately update state so UI updates instantaneously
