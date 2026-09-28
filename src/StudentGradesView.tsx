@@ -2119,12 +2119,6 @@ export default function StudentGradesView({
                               {activeAssignmentsColumns.map((assign) => {
                                 const scoreVal = assign.scores[student.id];
                                 const hasScore = scoreVal !== undefined && scoreVal !== null && scoreVal !== '';
-                                const numScore = Number(scoreVal);
-
-                                if (hasScore && !isNaN(numScore)) {
-                                  totalScore += numScore;
-                                  gradedCount++;
-                                }
 
                                 return (
                                   <td key={assign.id} className="p-3 sm:p-3.5 text-center font-extrabold text-slate-800 text-xs sm:text-sm border border-slate-300">
