@@ -1535,24 +1535,130 @@ export default function App() {
     time?: string;
     cycleKey?: string;
     isCurrentCycle: boolean;
+    photoURL?: string | null;
   }
 
   const [allUsersUsage, setAllUsersUsage] = useState<UserUsage[]>([]);
   const [isLoadingUsage, setIsLoadingUsage] = useState(false);
+  const [selectedUserPhoto, setSelectedUserPhoto] = useState<{ fullname: string; username: string; photoURL: string | null } | null>(null);
+
+  // Auto-register any active logged-in user into central custom_accounts so they always appear in the Rekapitulasi directory with photo
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser) return;
+
+    const uKey = (activeUserCustomData?.username || currentUser.email?.split('@')[0] || currentUser.uid).toLowerCase().trim();
+    const fname = activeUserCustomData?.fullname || profileData.namaGuruMapel || currentUser.displayName || currentUser.email || uKey;
+    const photo = avatarUrl || currentUser.photoURL || null;
+
+    setDoc(doc(dbDefault, 'custom_accounts', uKey), {
+      username: uKey,
+      fullname: fname,
+      uid: currentUser.uid,
+      email: currentUser.email || '',
+      ...(photo ? { photoURL: photo } : {})
+    }, { merge: true }).catch(err => console.warn('Auto-sync account to custom_accounts failed:', err));
+  }, [isLoggedIn, currentUser, activeUserCustomData, profileData.namaGuruMapel, avatarUrl]);
 
   useEffect(() => {
     if (activeTab === 'profile' && isLoggedIn) {
       setIsLoadingUsage(true);
       const currentCycle = getWibCycleInfo().cycleKey;
-      getDocs(collection(dbDefault, 'custom_accounts'))
-        .then(snap => {
-          trackOp('read', snap.size || 1);
-          const usages: UserUsage[] = snap.docs.map(doc => {
+      
+      Promise.all([
+        getDocs(collection(dbDefault, 'custom_accounts')),
+        getDocs(collection(activeDb, 'users')).catch(() => null),
+        dbDefault !== activeDb ? getDocs(collection(dbDefault, 'users')).catch(() => null) : Promise.resolve(null)
+      ])
+        .then(([customSnap, activeUsersSnap, defaultUsersSnap]) => {
+          const totalCount = (customSnap.size || 1) + (activeUsersSnap ? activeUsersSnap.size : 0);
+          trackOp('read', totalCount);
+          
+          // Photo map indexed strictly by specific unique keys (docId, username, UID, email)
+          const userPhotosMap: Record<string, string> = {};
+
+          const recordUserDoc = (uDoc: { id?: string; data?: () => Record<string, unknown> } & Record<string, unknown>) => {
+            const data = (typeof uDoc.data === 'function' ? uDoc.data() : uDoc) as Record<string, unknown>;
+            const profileData = (data.profileData || {}) as Record<string, unknown>;
+            
+            const photo = (data.photoURL || data.avatarUrl || data.photo || data.profilePhoto || data.foto || data.poto || data.picture || data.image ||
+                           profileData.photoURL || profileData.avatarUrl || profileData.photo || profileData.foto || profileData.poto) as string | undefined;
+            if (!photo || typeof photo !== 'string' || !photo.trim()) return;
+
+            const uname = (data.username || profileData.username) as string | undefined;
+            const uemail = (data.email || profileData.email) as string | undefined;
+            const uidVal = (data.uid || uDoc.id) as string | undefined;
+            const fname = (data.namaGuruMapel || profileData.namaGuruMapel || data.fullname || profileData.fullname) as string | undefined;
+
+            if (uDoc.id) {
+              userPhotosMap[uDoc.id.toString().toLowerCase().trim()] = photo;
+            }
+            if (uname) {
+              userPhotosMap[uname.toString().toLowerCase().trim()] = photo;
+            }
+            if (uemail) {
+              userPhotosMap[uemail.toString().toLowerCase().trim()] = photo;
+            }
+            if (uidVal) {
+              userPhotosMap[uidVal.toString().toLowerCase().trim()] = photo;
+            }
+            if (fname) {
+              const cleaned = fname.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+              if (cleaned.length > 3) {
+                userPhotosMap[`fname_${cleaned}`] = photo;
+              }
+            }
+          };
+
+          if (activeUsersSnap) activeUsersSnap.docs.forEach(recordUserDoc);
+          if (defaultUsersSnap) defaultUsersSnap.docs.forEach(recordUserDoc);
+
+          // Build usage items for genuine custom_accounts documents
+          const usages: UserUsage[] = customSnap.docs.map(doc => {
             const data = doc.data();
+            const docIdKey = doc.id.toLowerCase().trim();
+            const usernameKey = (data.username || doc.id).toString().toLowerCase().trim();
+            const uidKey = (data.uid || '').toString().toLowerCase().trim();
+            const emailKey = (data.email || '').toString().toLowerCase().trim();
+
             const userCycle = data.dailyUsageCycle;
-            // User limits reset automatically every day at 14:00 WIB.
-            // If the user's stored cycle is older than current 14:00 WIB cycle, reads and writes are 0.
             const isCurrentCycle = Boolean(userCycle && userCycle === currentCycle);
+            
+            const cleanedFullname = (data.fullname || doc.id).toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            // Photo lookup order: custom_accounts photo -> users map (docId/username/UID/email/normalized name) -> localStorage -> active session avatarUrl
+            let photoURL: string | null = data.photoURL || 
+                                          data.avatarUrl || 
+                                          data.photo || 
+                                          userPhotosMap[docIdKey] || 
+                                          userPhotosMap[usernameKey] || 
+                                          (uidKey ? userPhotosMap[uidKey] : null) || 
+                                          (emailKey ? userPhotosMap[emailKey] : null) || 
+                                          (cleanedFullname.length > 3 ? userPhotosMap[`fname_${cleanedFullname}`] : null) ||
+                                          null;
+
+            if (!photoURL) {
+              const localCached = localStorage.getItem(`kaguci_avatar_${usernameKey}`) ||
+                                  localStorage.getItem(`kaguci_avatar_${docIdKey}`) ||
+                                  (uidKey ? localStorage.getItem(`kaguci_avatar_${uidKey}`) : null);
+              if (localCached) {
+                photoURL = localCached;
+              }
+            }
+
+            if (activeUserCustomData?.username && (
+              activeUserCustomData.username.toLowerCase().trim() === usernameKey ||
+              activeUserCustomData.username.toLowerCase().trim() === docIdKey
+            ) && avatarUrl) {
+              photoURL = avatarUrl;
+
+              // Auto-sync active user photo to custom_accounts document for persistent global visibility
+              if (!data.photoURL) {
+                setDoc(doc(dbDefault, 'custom_accounts', doc.id.toLowerCase().trim()), {
+                  photoURL: avatarUrl
+                }, { merge: true }).catch(() => null);
+              }
+            }
+
             return {
               username: doc.id,
               fullname: data.fullname || doc.id,
@@ -1561,17 +1667,98 @@ export default function App() {
               date: isCurrentCycle ? (data.dailyUsageDate || '-') : 'Telah Reset (14:00 WIB)',
               time: isCurrentCycle ? (data.dailyUsageTime || '') : '',
               cycleKey: userCycle,
-              isCurrentCycle
+              isCurrentCycle,
+              photoURL: photoURL || null
             };
           });
-          // Sort by highest reads first
-          usages.sort((a, b) => b.reads - a.reads);
-          setAllUsersUsage(usages);
+
+          // Check if there are valid named users in users collections who are not in custom_accounts yet
+          const existingUsernames = new Set(usages.map(u => u.username.toLowerCase().trim()));
+          const existingFullnames = new Set(usages.map(u => u.fullname.toLowerCase().trim().replace(/[^a-z0-9]/g, '')));
+
+          const processExtraUserSnap = (snap: { docs: Array<{ id: string; data: () => Record<string, unknown> }> } | null) => {
+            if (!snap || !snap.docs) return;
+            snap.docs.forEach((uDoc) => {
+              const uData = (typeof uDoc.data === 'function' ? uDoc.data() : uDoc) as Record<string, unknown>;
+              const pData = (uData.profileData || {}) as Record<string, unknown>;
+              const fname = (uData.namaGuruMapel || pData.namaGuruMapel || uData.fullname || pData.fullname || uData.displayName) as string | undefined;
+              const uname = (uData.username || pData.username || (uData.email && typeof uData.email === 'string' ? uData.email.split('@')[0] : null)) as string | undefined;
+
+              if (!fname && !uname) return; // Skip raw documents without any human name or username
+
+              const targetName = fname || uname || uDoc.id;
+              const normalizedFname = targetName.toString().toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+
+              // Skip if already present in usages
+              if (existingFullnames.has(normalizedFname) || (uname && existingUsernames.has(uname.toLowerCase().trim()))) {
+                return;
+              }
+
+              const photo = (uData.photoURL || uData.avatarUrl || uData.photo || uData.profilePhoto || uData.foto || uData.poto ||
+                             pData.photoURL || pData.avatarUrl || pData.photo || pData.foto || pData.poto) as string | undefined;
+
+              const uCycle = uData.dailyUsageCycle as string | undefined;
+              const isCurrCycle = Boolean(uCycle && uCycle === currentCycle);
+
+              usages.push({
+                username: uname || uDoc.id,
+                fullname: targetName,
+                reads: isCurrCycle ? ((uData.dailyUsageReads as number) || 0) : 0,
+                writes: isCurrCycle ? ((uData.dailyUsageWrites as number) || 0) : 0,
+                date: isCurrCycle ? ((uData.dailyUsageDate as string) || '-') : 'Telah Reset (14:00 WIB)',
+                time: isCurrCycle ? ((uData.dailyUsageTime as string) || '') : '',
+                cycleKey: uCycle,
+                isCurrentCycle: isCurrCycle,
+                photoURL: (photo && typeof photo === 'string' && photo.trim() ? photo : null) || userPhotosMap[uDoc.id.toLowerCase().trim()] || null
+              });
+
+              existingUsernames.add((uname || uDoc.id).toLowerCase().trim());
+              existingFullnames.add(normalizedFname);
+            });
+          };
+
+          processExtraUserSnap(activeUsersSnap);
+          processExtraUserSnap(defaultUsersSnap);
+
+          // Ensure current active logged-in user is ALWAYS present in the usage list
+          if (currentUser) {
+            const activeKey = (activeUserCustomData?.username || currentUser.email?.split('@')[0] || currentUser.uid).toLowerCase().trim();
+            const exists = usages.some(u => u.username.toLowerCase().trim() === activeKey);
+            if (!exists) {
+              usages.push({
+                username: activeKey,
+                fullname: activeUserCustomData?.fullname || profileData.namaGuruMapel || currentUser.displayName || currentUser.email || activeKey,
+                reads: dailyUsageReads || 0,
+                writes: dailyUsageWrites || 0,
+                date: 'Siklus Aktif',
+                time: '',
+                isCurrentCycle: true,
+                photoURL: avatarUrl || currentUser.photoURL || null
+              });
+            } else {
+              // Update photo for active user in usages if state avatarUrl is present
+              const activeUserUsage = usages.find(u => u.username.toLowerCase().trim() === activeKey);
+              if (activeUserUsage && avatarUrl) {
+                activeUserUsage.photoURL = avatarUrl;
+              }
+            }
+          }
+
+          // Filter out unwanted/unregistered test accounts as requested
+          const excludedList = ['irwan', 'adelia', 'administrator', 'indri nopiandi', 'muhamad sugih mukti'];
+          const filteredUsages = usages.filter(u => {
+            const uName = u.username.toLowerCase().trim();
+            const fName = u.fullname.toLowerCase().trim();
+            return !excludedList.some(ex => uName === ex || uName.includes(ex) || fName === ex || fName.includes(ex));
+          });
+
+          filteredUsages.sort((a, b) => b.reads - a.reads);
+          setAllUsersUsage(filteredUsages);
         })
         .catch(err => console.warn("Failed caching usage", err))
         .finally(() => setIsLoadingUsage(false));
     }
-  }, [activeTab, isLoggedIn, cycleInfo.cycleKey, trackOp]);
+  }, [activeTab, isLoggedIn, cycleInfo.cycleKey, trackOp, avatarUrl, activeUserCustomData, activeDb, activeAuth.currentUser, currentUser, profileData.namaGuruMapel]);
 
   // Monitor account deletion for custom generated accounts only
   useEffect(() => {
@@ -3687,14 +3874,11 @@ export default function App() {
                              updateProfile(currentUser, { photoURL: compressedBase64 })
                                .catch(authErr => console.warn('Gagal memperbarui foto profil auth:', authErr));
                              
-                             // Backup disabled
-                             /*
                              if (activeUserCustomData?.username) {
                                setDoc(doc(dbDefault, 'custom_accounts', activeUserCustomData?.username?.toLowerCase().trim() || ''), {
                                  photoURL: compressedBase64
                                }, { merge: true }).catch(err => console.warn('Mencadangkan foto profil ke tabel pusat gagal:', err));
                              }
-                             */
                              
                              // Save to private database (does not block or freeze if user Rules are custom/failing)
                              setDoc(doc(activeDb, 'users', currentUser.uid), { photoURL: compressedBase64 }, { merge: true })
@@ -3708,14 +3892,11 @@ export default function App() {
                              updateProfile(currentUser, { photoURL: rawBase64 })
                                .catch(authErr => console.warn('Gagal memperbarui foto profil auth:', authErr));
                              
-                             // Backup disabled
-                             /*
                              if (activeUserCustomData?.username) {
                                setDoc(doc(dbDefault, 'custom_accounts', activeUserCustomData?.username?.toLowerCase().trim() || ''), {
                                  photoURL: rawBase64
                                }, { merge: true }).catch(err => console.warn('Mencadangkan foto profil ke tabel pusat gagal:', err));
                              }
-                             */
                              
                              setDoc(doc(activeDb, 'users', currentUser.uid), { photoURL: rawBase64 }, { merge: true })
                                .catch(err => console.warn('Mencadangkan foto profil ke database mandiri gagal:', err));
@@ -4150,12 +4331,45 @@ export default function App() {
                               <td colSpan={5} className="px-4 py-8 text-center text-sm font-medium text-slate-500">Loading data statistik pengguna...</td>
                             </tr>
                           ) : allUsersUsage.length > 0 ? (
-                            allUsersUsage.map((usage, idx) => (
-                              <tr key={usage.username} className={`border-b border-slate-50 last:border-none ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
-                                <td className="px-4 py-3">
-                                  <div className="text-sm font-bold text-slate-800">{usage.fullname}</div>
-                                  <div className="text-[10px] font-medium text-slate-500">{usage.username}</div>
-                                </td>
+                            allUsersUsage.map((usage, idx) => {
+                              const defaultProfilePhotoSvg = `data:image/svg+xml;utf8,${encodeURIComponent(
+                                `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" rx="32" fill="#e2e8f0"/><circle cx="128" cy="96" r="48" fill="#94a3b8"/><path d="M48 216c0-44 36-72 80-72s80 28 80 72" fill="#94a3b8"/></svg>`
+                              )}`;
+                              const displayPhoto = usage.photoURL || defaultProfilePhotoSvg;
+
+                              return (
+                                <tr key={usage.username} className={`border-b border-slate-50 last:border-none hover:bg-slate-100/60 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                      {/* Photo Avatar Thumbnail (Square frame) */}
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedUserPhoto({ fullname: usage.fullname, username: usage.username, photoURL: displayPhoto })}
+                                        className="relative group shrink-0 focus:outline-none"
+                                        title="Klik untuk melihat foto profil besar"
+                                      >
+                                        <img 
+                                          src={displayPhoto} 
+                                          alt={usage.fullname} 
+                                          className="w-12 h-12 rounded-xl object-cover border-2 border-slate-200 group-hover:border-[#8dc63f] shadow-sm group-hover:scale-105 active:scale-95 transition-all"
+                                        />
+                                        <div className="absolute inset-0 rounded-xl bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                          <Eye className="w-4 h-4 text-white drop-shadow-sm" />
+                                        </div>
+                                      </button>
+
+                                      {/* Full Name */}
+                                      <div className="flex items-center min-w-0">
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedUserPhoto({ fullname: usage.fullname, username: usage.username, photoURL: displayPhoto })}
+                                          className="text-sm font-bold text-slate-800 hover:text-[#7bc025] cursor-pointer transition-colors text-left truncate"
+                                        >
+                                          {usage.fullname}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </td>
                                 <td className="px-4 py-3 text-right">
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold ${usage.reads > 10000 ? 'bg-rose-100 text-rose-700' : usage.reads > 5000 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-[#7bc025]'}`}>
                                     {usage.reads.toLocaleString('id-ID')}
@@ -4183,7 +4397,8 @@ export default function App() {
                                   {usage.time && <div className="text-[9px] font-medium text-slate-400">{usage.time}</div>}
                                 </td>
                               </tr>
-                            ))
+                            );
+                          })
                           ) : (
                             <tr>
                               <td colSpan={5} className="px-4 py-8 text-center text-sm font-medium text-slate-500">Belum ada data penggunaan tercatat.</td>
@@ -4194,6 +4409,79 @@ export default function App() {
                     </div>
                   </div>
                 </div>
+
+                {/* Modal Large Profile Photo Preview */}
+                <AnimatePresence>
+                  {selectedUserPhoto && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setSelectedUserPhoto(null)}
+                      className="fixed inset-0 z-[9999] bg-slate-900/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0, y: 15 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 15 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white rounded-3xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 relative flex flex-col items-center text-center max-h-[90vh] my-auto overflow-y-auto select-none"
+                      >
+                        {/* Header Bar with Label and Sticky Close Button */}
+                        <div className="w-full flex items-center justify-between gap-2 pb-3 mb-2 border-b border-slate-100 shrink-0">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#8dc63f] animate-pulse"></span>
+                            <span className="text-xs font-black tracking-wider uppercase text-slate-700">Poto Profil Pengguna</span>
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={() => setSelectedUserPhoto(null)}
+                            className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer border border-slate-200 active:scale-95 shrink-0"
+                            title="Tutup Preview"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        {/* Large Photo Display (Optimized Frame to avoid offscreen overflow) */}
+                        <div className="w-full max-w-[280px] sm:max-w-[320px] aspect-square rounded-2xl overflow-hidden border-4 border-[#8dc63f] shadow-xl my-3 relative bg-slate-50 flex items-center justify-center shrink-0 mx-auto">
+                          {selectedUserPhoto.photoURL ? (
+                            <img 
+                              src={selectedUserPhoto.photoURL} 
+                              alt={selectedUserPhoto.fullname} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-[#8dc63f]/10 text-[#6ea52b] p-6">
+                              <UserIcon className="w-20 h-20 mb-2 opacity-80" />
+                              <span className="text-xs font-bold text-slate-500">Belum ada foto profil</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* User Identity Details */}
+                        <div className="w-full bg-slate-50 rounded-2xl p-3.5 border border-slate-100 flex flex-col items-center shrink-0">
+                          <h4 className="text-base sm:text-lg font-black text-slate-800 leading-snug">
+                            {selectedUserPhoto.fullname}
+                          </h4>
+                          <p className="text-xs font-bold text-[#8dc63f] uppercase tracking-wider mt-0.5">
+                            @{selectedUserPhoto.username}
+                          </p>
+                        </div>
+
+                        {/* Action Button */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUserPhoto(null)}
+                          className="w-full mt-4 py-3 rounded-xl font-extrabold text-white bg-slate-800 hover:bg-slate-900 border border-slate-700 transition-all text-sm shadow-md active:scale-[0.98] cursor-pointer shrink-0"
+                        >
+                          Tutup Gambar
+                        </button>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {isProfileEditing && (
                   <div className="flex justify-end gap-3 mt-6">
