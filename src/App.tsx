@@ -1302,10 +1302,10 @@ export default function App() {
 
   useEffect(() => {
     document.title = 'My Kaguci App';
-    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
+    const link = (document.querySelector("link[rel*='icon']") as HTMLLinkElement) || document.createElement('link');
     link.type = 'image/png';
-    link.rel = 'shortcut icon';
-    link.href = `/favicon.png?v=${Date.now()}`;
+    link.rel = 'icon';
+    link.href = `/favicon-32x32.png?v=${Date.now()}`;
     document.getElementsByTagName('head')[0].appendChild(link);
   }, []);
 
@@ -4922,10 +4922,9 @@ export default function App() {
                 className="w-32 h-32 md:w-36 md:h-36 mb-6 flex items-center justify-center"
               >
                 <img 
-                  src="https://drive.google.com/thumbnail?id=1P395tuZymxs3qero4XduMpHy7g2GJrdR&sz=w1000" 
+                  src="/school_logo.png" 
                   alt="My Kaguci Logo" 
                   className="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)]"
-                  referrerPolicy="no-referrer"
                 />
               </motion.div>
 
@@ -4950,7 +4949,7 @@ export default function App() {
                 initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-                className="text-white text-xs sm:text-[13px] font-medium uppercase tracking-[0.22em] mt-3.5 text-center"
+                className="text-white text-[10.5px] xs:text-xs sm:text-[13px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.22em] mt-3.5 text-center whitespace-nowrap px-2"
               >
                 SISTEM INFORMASI PEMBELAJARAN DIGITAL
               </motion.p>
@@ -4959,7 +4958,7 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.9 }}
-                className="text-white text-[9px] sm:text-[10px] font-bold tracking-widest mt-1.5 uppercase text-center"
+                className="text-white text-[8px] xs:text-[9px] sm:text-[10px] font-bold tracking-[0.12em] sm:tracking-widest mt-1.5 uppercase text-center whitespace-nowrap px-2"
               >
                 CERDAS • INOVATIF • TERAMPIL • RESPONSIF • AGAMIS
               </motion.p>
@@ -4996,10 +4995,9 @@ export default function App() {
               {/* School Logo Container */}
               <div className="w-24 h-24 sm:w-28 sm:h-28 mb-4 flex items-center justify-center">
                 <img 
-                  src="https://drive.google.com/thumbnail?id=1P395tuZymxs3qero4XduMpHy7g2GJrdR&sz=w1000" 
+                  src="/school_logo.png" 
                   alt="My Kaguci Logo" 
                   className="w-full h-full object-contain filter drop-shadow-sm"
-                  referrerPolicy="no-referrer"
                 />
               </div>
 
@@ -6053,10 +6051,9 @@ export default function App() {
       <header className="bg-white px-3 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center border-b-2 border-slate-400 z-40 shadow-[0_2px_15px_rgba(148,163,184,0.03)] shrink-0 print:hidden">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           <img 
-            src="https://drive.google.com/thumbnail?id=1P395tuZymxs3qero4XduMpHy7g2GJrdR&sz=w1000" 
+            src="/school_logo.png" 
             alt="Logo" 
             className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-sm shrink-0" 
-            referrerPolicy="no-referrer" 
           />
           <div className="flex flex-col justify-center min-w-0">
             <h1 className="text-[15px] sm:text-lg font-black text-[#8dc63f] tracking-tight leading-none scale-y-105 origin-left whitespace-nowrap select-none">
