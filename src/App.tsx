@@ -1298,6 +1298,10 @@ export default function App() {
   }, [isAdmin, activeUserCustomData, profileData.namaGuruMapel, trackOp]);
 
   useEffect(() => {
+    document.title = 'SMAN 1 Cililin - Aplikasi Absensi & Sistem Kaguci';
+  }, []);
+
+  useEffect(() => {
     if (isLoggedIn && isAdmin) {
       fetchAllUsers();
     }
