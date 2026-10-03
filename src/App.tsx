@@ -1302,6 +1302,11 @@ export default function App() {
 
   useEffect(() => {
     document.title = 'My Kaguci App';
+    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
+    link.type = 'image/png';
+    link.rel = 'shortcut icon';
+    link.href = `/favicon.png?v=${Date.now()}`;
+    document.getElementsByTagName('head')[0].appendChild(link);
   }, []);
 
   useEffect(() => {
@@ -4945,18 +4950,18 @@ export default function App() {
                 initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-                className="text-white/90 text-xs sm:text-[13px] font-medium uppercase tracking-[0.22em] mt-3.5 text-center"
+                className="text-white text-xs sm:text-[13px] font-medium uppercase tracking-[0.22em] mt-3.5 text-center"
               >
-                Sistem Informasi Absensi Digital
+                SISTEM INFORMASI PEMBELAJARAN DIGITAL
               </motion.p>
                 
               <motion.p
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.6 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.9 }}
-                className="text-white/60 text-[9px] font-semibold tracking-widest mt-1.5 uppercase text-center"
+                className="text-white text-[9px] sm:text-[10px] font-bold tracking-widest mt-1.5 uppercase text-center"
               >
-                Cerdas • Inovatif • Terampil • Responsif • Agamis
+                CERDAS • INOVATIF • TERAMPIL • RESPONSIF • AGAMIS
               </motion.p>
 
               {/* White micro progress bar */}
@@ -5493,7 +5498,7 @@ export default function App() {
                         <input 
                           type="text" 
                           className="w-full pl-11 pr-4 py-3 bg-[#fefce8] border-2 border-[#8dc63f] rounded-lg focus:ring-2 focus:ring-[#8dc63f] focus:border-[#8dc63f] transition-all outline-none text-slate-700 font-medium placeholder:text-slate-500 text-sm" 
-                          placeholder="Contoh: admin atau budi" 
+                          placeholder="Contoh: aganparta92" 
                           value={authEmail}
                           onChange={e => setAuthEmail(e.target.value)}
                           required 
@@ -5590,7 +5595,7 @@ export default function App() {
                       <input 
                         type="text"
                         className="w-full px-4 py-3 bg-[#fefce8] border-2 border-[#8dc63f] rounded-xl focus:ring-2 focus:ring-[#8dc63f] focus:border-[#8dc63f] transition-all outline-none text-slate-700 font-medium placeholder:text-slate-500 text-sm"
-                        placeholder="Contoh: Budi Santoso, S.Pd."
+                        placeholder="Contoh: Agan Parta, S.Kom."
                         value={regFullName}
                         onChange={e => setRegFullName(e.target.value)}
                       />
@@ -5601,7 +5606,7 @@ export default function App() {
                        <input 
                          type="text"
                          className="w-full px-4 py-3 bg-[#fefce8] border-2 border-[#8dc63f] rounded-xl focus:ring-2 focus:ring-[#8dc63f] focus:border-[#7bc025] transition-all outline-none text-slate-700 font-medium placeholder:text-slate-500 text-sm"
-                         placeholder="Contoh: admin atau budi"
+                         placeholder="Contoh: aganparta92"
                          value={regUsername}
                          onChange={e => setRegUsername(e.target.value)}
                        />
@@ -6697,7 +6702,7 @@ export default function App() {
                        type="text" 
                        value={editFullname} 
                        onChange={(e) => setEditFullname(e.target.value)}
-                       placeholder="Contoh: Budi Santoso, S.Pd."
+                       placeholder="Contoh: Agan Parta, S.Kom."
                        className="w-full bg-slate-50 border-2 border-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-hidden font-bold text-slate-800 text-xs rounded-xl px-4 py-2.5 transition-all text-slate-800"
                     />
                   </div>
