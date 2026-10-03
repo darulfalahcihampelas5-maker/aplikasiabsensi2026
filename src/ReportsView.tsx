@@ -65,12 +65,15 @@ interface ReportsViewProps {
     namaBK?: string;
     nipBK?: string;
     jabatanBK?: string;
+    namaBK2?: string;
+    nipBK2?: string;
     namaHumas?: string;
     nipHumas?: string;
     jabatanHumas?: string;
     semester: string;
     tahunPelajaran: string;
     mataPelajaran: string;
+    mataPelajaran2?: string;
     role?: string;
     waliKelasClass?: string;
   };
@@ -82,7 +85,7 @@ interface ReportsViewProps {
   onNavigateToProfile?: () => void;
 }
 
-export type SignerRoleType = 'kepala_sekolah' | 'kurikulum' | 'kesiswaan' | 'humas' | 'guru_wali' | 'guru_bk' | 'none';
+export type SignerRoleType = 'kepala_sekolah' | 'kurikulum' | 'kesiswaan' | 'humas' | 'guru_wali' | 'guru_bk' | 'guru_bk_2' | 'none';
 
 export default function ReportsView({ 
   classList, 
@@ -130,6 +133,15 @@ export default function ReportsView({
   const [leftSignerRole, setLeftSignerRole] = useState<SignerRoleType>('kepala_sekolah');
   const [midSignerRole, setMidSignerRole] = useState<SignerRoleType>('none');
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedMapelForSign, setSelectedMapelForSign] = useState<string>(() => {
+    return profileData?.mataPelajaran || '';
+  });
+
+  useEffect(() => {
+    if (profileData?.mataPelajaran && !selectedMapelForSign) {
+      setSelectedMapelForSign(profileData.mataPelajaran);
+    }
+  }, [profileData?.mataPelajaran]);
 
   const getSignerDetails = (role: SignerRoleType) => {
     switch (role) {
@@ -171,6 +183,14 @@ export default function ReportsView({
           name: profileData?.namaBK || '(________________________)',
           nip: profileData?.nipBK ? `NIP. ${profileData.nipBK}` : '',
           rawNip: profileData?.nipBK || '',
+          enabled: true
+        };
+      case 'guru_bk_2':
+        return {
+          title: 'Guru BK 2',
+          name: profileData?.namaBK2 || '(________________________)',
+          nip: profileData?.nipBK2 ? `NIP. ${profileData.nipBK2}` : '',
+          rawNip: profileData?.nipBK2 || '',
           enabled: true
         };
       case 'none':
@@ -423,10 +443,11 @@ export default function ReportsView({
     if (midSigner.enabled) {
       row2[midCol] = midSigner.title;
     }
+    const activeMapel = (selectedMapelForSign || profileData?.mataPelajaran || '').trim();
     row2[rightCol] = profileData?.role === 'Wali Kelas'
       ? (profileData?.waliKelasClass ? `Wali Kelas ${profileData.waliKelasClass}` : 'Wali Kelas')
-      : ((profileData?.mataPelajaran && profileData.mataPelajaran.trim()) 
-          ? `Guru Mata Pelajaran ${profileData.mataPelajaran.trim()}` 
+      : (activeMapel 
+          ? `Guru Mata Pelajaran ${activeMapel}` 
           : 'Guru Mata Pelajaran');
     
     const row3 = createRow();
@@ -1010,10 +1031,11 @@ export default function ReportsView({
         const teacherName = profileData?.namaGuruMapel || '(________________________)';
         const teacherNIP = profileData?.nipGuruMapel ? `NIP. ${profileData.nipGuruMapel}` : '';
 
+        const activeMapel = (selectedMapelForSign || profileData?.mataPelajaran || '').trim();
         const teacherLabel = profileData?.role === 'Wali Kelas'
           ? (profileData?.waliKelasClass ? `Wali Kelas ${profileData.waliKelasClass}` : 'Wali Kelas')
-          : ((profileData?.mataPelajaran && profileData.mataPelajaran.trim())
-              ? `Guru Mata Pelajaran ${profileData.mataPelajaran.trim()}`
+          : (activeMapel
+              ? `Guru Mata Pelajaran ${activeMapel}`
               : 'Guru Mata Pelajaran');
 
         doc.setFont("helvetica", "normal");
@@ -1336,6 +1358,9 @@ export default function ReportsView({
                       <option value="kesiswaan">👥 Pihak Kesiswaan {profileData?.namaKesiswaan ? `(${profileData.namaKesiswaan})` : ''}</option>
                       <option value="humas">📢 Pihak Humas {profileData?.namaHumas ? `(${profileData.namaHumas})` : ''}</option>
                       <option value="guru_bk">🤝 Guru BK {profileData?.namaBK ? `(${profileData.namaBK})` : ''}</option>
+                      {profileData?.namaBK2 && (
+                        <option value="guru_bk_2">🤝 Guru BK 2 ({profileData.namaBK2})</option>
+                      )}
                       <option value="guru_wali">🎓 Guru Wali {profileData?.namaGuruWali ? `(${profileData.namaGuruWali})` : ''}</option>
                       <option value="none">➖ Tanpa Tanda Tangan Kiri</option>
                     </select>
@@ -1357,10 +1382,46 @@ export default function ReportsView({
                       <option value="kesiswaan">👥 Pihak Kesiswaan {profileData?.namaKesiswaan ? `(${profileData.namaKesiswaan})` : ''}</option>
                       <option value="humas">📢 Pihak Humas {profileData?.namaHumas ? `(${profileData.namaHumas})` : ''}</option>
                       <option value="guru_bk">🤝 Guru BK {profileData?.namaBK ? `(${profileData.namaBK})` : ''}</option>
+                      {profileData?.namaBK2 && (
+                        <option value="guru_bk_2">🤝 Guru BK 2 ({profileData.namaBK2})</option>
+                      )}
                       <option value="guru_wali">🎓 Guru Wali {profileData?.namaGuruWali ? `(${profileData.namaGuruWali})` : ''}</option>
                       <option value="kepala_sekolah">🏫 Kepala Sekolah {profileData?.namaKepalaSekolah ? `(${profileData.namaKepalaSekolah})` : ''}</option>
                     </select>
                   </div>
+
+                  {/* Pilihan Mapel untuk Tanda Tangan Guru Mapel */}
+                  {profileData?.role !== 'Wali Kelas' && (profileData?.mataPelajaran || profileData?.mataPelajaran2) && (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center justify-between">
+                        <span>3. Mapel untuk Tanda Tangan</span>
+                        {profileData?.mataPelajaran2 && (
+                          <span className="text-[9px] font-extrabold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">2 Mapel Aktif</span>
+                        )}
+                      </label>
+                      <select
+                        className="w-full p-2.5 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors text-xs font-bold text-slate-800"
+                        value={selectedMapelForSign}
+                        onChange={(e) => setSelectedMapelForSign(e.target.value)}
+                      >
+                        {profileData.mataPelajaran && (
+                          <option value={profileData.mataPelajaran}>
+                            Mapel 1: {profileData.mataPelajaran}
+                          </option>
+                        )}
+                        {profileData.mataPelajaran2 && (
+                          <option value={profileData.mataPelajaran2}>
+                            Mapel 2: {profileData.mataPelajaran2}
+                          </option>
+                        )}
+                        {profileData.mataPelajaran && profileData.mataPelajaran2 && (
+                          <option value={`${profileData.mataPelajaran} & ${profileData.mataPelajaran2}`}>
+                            Keduanya: {profileData.mataPelajaran} & {profileData.mataPelajaran2}
+                          </option>
+                        )}
+                      </select>
+                    </div>
+                  )}
 
                   {/* Ringkasan Penandatangan */}
                   <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-[10.5px] space-y-1">
@@ -1381,7 +1442,7 @@ export default function ReportsView({
                       </div>
                     )}
                     <div className="text-slate-700 truncate">
-                      <span className="font-bold text-emerald-900">Kanan:</span> {profileData?.role === 'Wali Kelas' ? 'Wali Kelas' : 'Guru Mapel'} ({profileData?.namaGuruMapel || 'Belum diisi'})
+                      <span className="font-bold text-emerald-900">Kanan:</span> {profileData?.role === 'Wali Kelas' ? (profileData?.waliKelasClass ? `Wali Kelas ${profileData.waliKelasClass}` : 'Wali Kelas') : (selectedMapelForSign || profileData?.mataPelajaran ? `Guru Mapel (${selectedMapelForSign || profileData?.mataPelajaran})` : 'Guru Mapel')} ({profileData?.namaGuruMapel || 'Belum diisi'})
                     </div>
                   </div>
                 </div>
@@ -1784,6 +1845,9 @@ export default function ReportsView({
                         <option value="kesiswaan">👥 Pihak Kesiswaan ({profileData?.namaKesiswaan || 'Belum diisi'})</option>
                         <option value="humas">📢 Pihak Humas ({profileData?.namaHumas || 'Belum diisi'})</option>
                         <option value="guru_bk">🤝 Guru BK ({profileData?.namaBK || 'Belum diisi'})</option>
+                        {profileData?.namaBK2 && (
+                          <option value="guru_bk_2">🤝 Guru BK 2 ({profileData.namaBK2})</option>
+                        )}
                         <option value="guru_wali">🎓 Guru Wali ({profileData?.namaGuruWali || 'Belum diisi'})</option>
                         <option value="none">➖ Tanpa Tanda Tangan Kiri</option>
                       </select>
@@ -1804,13 +1868,49 @@ export default function ReportsView({
                         <option value="kesiswaan">👥 Pihak Kesiswaan ({profileData?.namaKesiswaan || 'Belum diisi'})</option>
                         <option value="humas">📢 Pihak Humas ({profileData?.namaHumas || 'Belum diisi'})</option>
                         <option value="guru_bk">🤝 Guru BK ({profileData?.namaBK || 'Belum diisi'})</option>
+                        {profileData?.namaBK2 && (
+                          <option value="guru_bk_2">🤝 Guru BK 2 ({profileData.namaBK2})</option>
+                        )}
                         <option value="guru_wali">🎓 Guru Wali ({profileData?.namaGuruWali || 'Belum diisi'})</option>
                         <option value="kepala_sekolah">🏫 Kepala Sekolah ({profileData?.namaKepalaSekolah || 'Belum diisi'})</option>
                       </select>
                     </div>
 
+                    {/* Pilihan Mapel untuk Tanda Tangan di Modal Cetak PDF */}
+                    {profileData?.role !== 'Wali Kelas' && (profileData?.mataPelajaran || profileData?.mataPelajaran2) && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1 flex items-center justify-between">
+                          <span>3. Mapel untuk Tanda Tangan</span>
+                          {profileData?.mataPelajaran2 && (
+                            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">2 Mapel Aktif</span>
+                          )}
+                        </label>
+                        <select
+                          className="w-full p-2.5 bg-white border-2 border-slate-400 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors"
+                          value={selectedMapelForSign}
+                          onChange={(e) => setSelectedMapelForSign(e.target.value)}
+                        >
+                          {profileData.mataPelajaran && (
+                            <option value={profileData.mataPelajaran}>
+                              Mapel 1: {profileData.mataPelajaran}
+                            </option>
+                          )}
+                          {profileData.mataPelajaran2 && (
+                            <option value={profileData.mataPelajaran2}>
+                              Mapel 2: {profileData.mataPelajaran2}
+                            </option>
+                          )}
+                          {profileData.mataPelajaran && profileData.mataPelajaran2 && (
+                            <option value={`${profileData.mataPelajaran} & ${profileData.mataPelajaran2}`}>
+                              Keduanya: {profileData.mataPelajaran} &amp; {profileData.mataPelajaran2}
+                            </option>
+                          )}
+                        </select>
+                      </div>
+                    )}
+
                     <div className="pt-2 border-t border-slate-200 text-[10.5px] text-slate-600">
-                      <span className="font-bold text-rose-700">Tanda Tangan Kanan (Otomatis):</span> {profileData?.role === 'Wali Kelas' ? 'Wali Kelas' : 'Guru Mapel'} ({profileData?.namaGuruMapel || 'Belum diisi'})
+                      <span className="font-bold text-rose-700">Tanda Tangan Kanan (Otomatis):</span> {profileData?.role === 'Wali Kelas' ? (profileData?.waliKelasClass ? `Wali Kelas ${profileData.waliKelasClass}` : 'Wali Kelas') : (selectedMapelForSign || profileData?.mataPelajaran ? `Guru Mapel (${selectedMapelForSign || profileData?.mataPelajaran})` : 'Guru Mapel')} ({profileData?.namaGuruMapel || 'Belum diisi'})
                     </div>
                   </div>
 

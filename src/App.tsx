@@ -1110,12 +1110,15 @@ export default function App() {
       namaBK: '',
       nipBK: '',
       jabatanBK: 'Guru BK',
+      namaBK2: '',
+      nipBK2: '',
       namaHumas: '',
       nipHumas: '',
       jabatanHumas: 'Wakasek Humas',
       semester: 'Ganjil',
       tahunPelajaran: '',
       mataPelajaran: '',
+      mataPelajaran2: '',
       role: 'Guru Mapel',
       waliKelasClass: '',
       jumlahSiswaLakiLaki: '',
@@ -1474,12 +1477,15 @@ export default function App() {
                  namaBK: data.namaBK || '',
                  nipBK: data.nipBK || '',
                  jabatanBK: data.jabatanBK || 'Guru BK',
+                 namaBK2: data.namaBK2 || '',
+                 nipBK2: data.nipBK2 || '',
                  namaHumas: data.namaHumas || '',
                  nipHumas: data.nipHumas || '',
                  jabatanHumas: data.jabatanHumas || 'Wakasek Humas',
                  semester: data.semester || 'Ganjil',
                  tahunPelajaran: data.tahunPelajaran || '',
                  mataPelajaran: data.mataPelajaran || '',
+                 mataPelajaran2: data.mataPelajaran2 || '',
                  role: data.role || 'Guru Mapel',
                  waliKelasClass: data.waliKelasClass || '',
                  jumlahSiswaLakiLaki: data.jumlahSiswaLakiLaki || '',
@@ -1964,12 +1970,15 @@ export default function App() {
              namaBK: data.namaBK || '',
              nipBK: data.nipBK || '',
              jabatanBK: data.jabatanBK || 'Guru BK',
+             namaBK2: data.namaBK2 || '',
+             nipBK2: data.nipBK2 || '',
              namaHumas: data.namaHumas || '',
              nipHumas: data.nipHumas || '',
              jabatanHumas: data.jabatanHumas || 'Wakasek Humas',
              semester: data.semester || 'Ganjil',
              tahunPelajaran: data.tahunPelajaran || '',
              mataPelajaran: data.mataPelajaran || '',
+             mataPelajaran2: data.mataPelajaran2 || '',
              role: data.role || 'Guru Mapel',
              waliKelasClass: data.waliKelasClass || ''
            };
@@ -3961,8 +3970,13 @@ export default function App() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mata Pelajaran</label>
-                    <input type="text" disabled={!isProfileEditing || profileData.role === 'Wali Kelas'} value={profileData.mataPelajaran} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, mataPelajaran: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
+                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mata Pelajaran 1 (Utama)</label>
+                    <input type="text" disabled={!isProfileEditing || profileData.role === 'Wali Kelas'} value={profileData.mataPelajaran} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, mataPelajaran: e.target.value }))} placeholder="Contoh: Matematika" className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mata Pelajaran 2 (Bila Mengajar 2 Mapel)</label>
+                    <input type="text" disabled={!isProfileEditing || profileData.role === 'Wali Kelas'} value={profileData.mataPelajaran2 || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, mataPelajaran2: e.target.value }))} placeholder="Contoh: Informatika (Boleh kosong)" className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50 disabled:text-slate-600 disabled:border-slate-100" />
                   </div>
 
                   {profileData.role === 'Wali Kelas' && (
@@ -4126,12 +4140,20 @@ export default function App() {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Guru BK</label>
+                          <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Guru BK 1</label>
                           <input type="text" disabled={!isProfileEditing} value={profileData.namaBK || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaBK: e.target.value }))} placeholder="Nama guru BK (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Guru BK</label>
                           <input type="text" disabled={!isProfileEditing} value={profileData.nipBK || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipBK: e.target.value }))} placeholder="NIP guru BK (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nama Guru BK 2 / Pendamping</label>
+                          <input type="text" disabled={!isProfileEditing} value={profileData.namaBK2 || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, namaBK2: e.target.value }))} placeholder="Nama guru BK kedua / pendamping (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">NIP Guru BK 2 / Pendamping</label>
+                          <input type="text" disabled={!isProfileEditing} value={profileData.nipBK2 || ''} onChange={e => setProfileData((p: typeof profileData) => ({ ...p, nipBK2: e.target.value }))} placeholder="NIP guru BK kedua / pendamping (Boleh kosong)" className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-400 rounded-xl focus:outline-none focus:border-[#8dc63f] focus:ring-2 focus:ring-emerald-100 transition-all text-xs font-semibold text-slate-800 disabled:opacity-60 disabled:bg-slate-50" />
                         </div>
                       </div>
                     </div>
@@ -4520,12 +4542,15 @@ export default function App() {
                             namaBK: profileData.namaBK || '',
                             nipBK: profileData.nipBK || '',
                             jabatanBK: profileData.jabatanBK || 'Guru BK',
+                            namaBK2: profileData.namaBK2 || '',
+                            nipBK2: profileData.nipBK2 || '',
                             namaHumas: profileData.namaHumas || '',
                             nipHumas: profileData.nipHumas || '',
                             jabatanHumas: profileData.jabatanHumas || 'Wakasek Humas',
                             semester: profileData.semester || 'Ganjil',
                             tahunPelajaran: profileData.tahunPelajaran || '',
                             mataPelajaran: profileData.mataPelajaran || '',
+                            mataPelajaran2: profileData.mataPelajaran2 || '',
                             role: profileData.role || 'Guru Mapel',
                             waliKelasClass: profileData.waliKelasClass || '',
                             jumlahSiswaLakiLaki: profileData.jumlahSiswaLakiLaki || 0,

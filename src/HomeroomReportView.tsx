@@ -106,6 +106,8 @@ interface HomeroomReportViewProps {
     namaBK?: string;
     nipBK?: string;
     jabatanBK?: string;
+    namaBK2?: string;
+    nipBK2?: string;
     namaHumas?: string;
     nipHumas?: string;
     jabatanHumas?: string;
@@ -119,7 +121,7 @@ interface HomeroomReportViewProps {
   };
 }
 
-export type HomeroomSignerRoleType = 'kepala_sekolah' | 'kurikulum' | 'kesiswaan' | 'humas' | 'guru_wali' | 'guru_bk' | 'none';
+export type HomeroomSignerRoleType = 'kepala_sekolah' | 'kurikulum' | 'kesiswaan' | 'humas' | 'guru_wali' | 'guru_bk' | 'guru_bk_2' | 'none';
 
 const parseStudentIds = (val: string[] | number | undefined | null): string[] => {
   if (Array.isArray(val)) return val;
@@ -501,6 +503,13 @@ export default function HomeroomReportView({
           title: profileData?.jabatanBK || 'Guru BK',
           name: profileData?.namaBK || '(________________________)',
           nip: profileData?.nipBK ? `NIP. ${profileData.nipBK}` : '',
+          enabled: true
+        };
+      case 'guru_bk_2':
+        return {
+          title: 'Guru BK 2',
+          name: profileData?.namaBK2 || '(________________________)',
+          nip: profileData?.nipBK2 ? `NIP. ${profileData.nipBK2}` : '',
           enabled: true
         };
       case 'none':

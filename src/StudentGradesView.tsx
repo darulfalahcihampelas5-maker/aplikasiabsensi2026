@@ -32,7 +32,7 @@ import { kopSuratBase64 } from './kop-surat-b64';
 import { compareClasses, compareStudentsByClass } from './classSortUtils';
 import { handleFirestoreError, OperationType } from './firebase';
 
-export type SignerRoleType = 'kepala_sekolah' | 'kurikulum' | 'kesiswaan' | 'humas' | 'guru_wali' | 'guru_bk' | 'none';
+export type SignerRoleType = 'kepala_sekolah' | 'kurikulum' | 'kesiswaan' | 'humas' | 'guru_wali' | 'guru_bk' | 'guru_bk_2' | 'none';
 
 export interface Student {
   id: string;
@@ -83,6 +83,9 @@ export interface ProfileRecord {
   namaBK?: string;
   nipBK?: string;
   jabatanBK?: string;
+  namaBK2?: string;
+  nipBK2?: string;
+  mataPelajaran2?: string;
   role?: string;
   waliKelasClass?: string;
   tahunPelajaran?: string;
@@ -195,6 +198,15 @@ export default function StudentGradesView({
   // Signer states for official reports & Excel export
   const [leftSignerRole, setLeftSignerRole] = useState<SignerRoleType>('kepala_sekolah');
   const [midSignerRole, setMidSignerRole] = useState<SignerRoleType>('none');
+  const [selectedMapelForSign, setSelectedMapelForSign] = useState<string>(() => {
+    return (profileData?.mataPelajaran || '').trim();
+  });
+
+  useEffect(() => {
+    if (effectiveProfile?.mataPelajaran && !selectedMapelForSign) {
+      setSelectedMapelForSign(effectiveProfile.mataPelajaran);
+    }
+  }, [effectiveProfile?.mataPelajaran]);
 
   // Print & PDF modal state (Ukuran Kertas F4)
   const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
@@ -240,6 +252,13 @@ export default function StudentGradesView({
           nip: effectiveProfile.nipBK ? `NIP. ${effectiveProfile.nipBK}` : '',
           enabled: true
         };
+      case 'guru_bk_2':
+        return {
+          title: 'Guru BK 2',
+          name: effectiveProfile.namaBK2 || '(________________________)',
+          nip: effectiveProfile.nipBK2 ? `NIP. ${effectiveProfile.nipBK2}` : '',
+          enabled: true
+        };
       case 'none':
         return {
           title: '',
@@ -260,7 +279,7 @@ export default function StudentGradesView({
 
   // Helper: Retrieve teacher signer info
   const getTeacherSignerInfo = (targetMapel?: string) => {
-    const rawMapel = targetMapel !== undefined ? targetMapel : (effectiveProfile.mataPelajaran || '').trim();
+    const rawMapel = targetMapel !== undefined ? targetMapel : (selectedMapelForSign || effectiveProfile.mataPelajaran || '').trim();
     const mapel = rawMapel ? rawMapel.toUpperCase() : '';
     const teacherTitle = effectiveProfile?.role === 'Wali Kelas'
       ? (effectiveProfile?.waliKelasClass ? `Wali Kelas ${effectiveProfile.waliKelasClass}` : 'Wali Kelas')
@@ -778,7 +797,7 @@ export default function StudentGradesView({
       return;
     }
 
-    const rawMapel = (effectiveProfile.mataPelajaran || '').trim();
+    const rawMapel = (selectedMapelForSign || effectiveProfile.mataPelajaran || '').trim();
     const mapel = rawMapel ? rawMapel.toUpperCase() : '';
     const tahun = (effectiveProfile.tahunPelajaran || '').trim();
     const tanggalUpdateStr = format(new Date(), 'dd MMMM yyyy', { locale: id });
@@ -1221,7 +1240,7 @@ export default function StudentGradesView({
       return;
     }
 
-    const rawMapel = (effectiveProfile.mataPelajaran || '').trim();
+    const rawMapel = (selectedMapelForSign || effectiveProfile.mataPelajaran || '').trim();
     const mapel = rawMapel ? rawMapel.toUpperCase() : '';
     const tahun = (effectiveProfile.tahunPelajaran || '').trim();
     const tanggalUpdateStr = format(new Date(), 'dd MMMM yyyy', { locale: id });
@@ -2186,6 +2205,9 @@ export default function StudentGradesView({
                           <option value="humas">🤝 Wakasek Humas ({effectiveProfile.namaHumas || 'Belum diisi'})</option>
                           <option value="guru_wali">👨‍🏫 Guru Wali ({effectiveProfile.namaGuruWali || 'Belum diisi'})</option>
                           <option value="guru_bk">🧭 Guru BK ({effectiveProfile.namaBK || 'Belum diisi'})</option>
+                          {effectiveProfile.namaBK2 && (
+                            <option value="guru_bk_2">🧭 Guru BK 2 ({effectiveProfile.namaBK2})</option>
+                          )}
                           <option value="none">🚫 Tanpa Tanda Tangan Kiri</option>
                         </select>
                       </div>
@@ -2205,9 +2227,45 @@ export default function StudentGradesView({
                           <option value="kesiswaan">👥 Wakasek Kesiswaan ({effectiveProfile.namaKesiswaan || 'Belum diisi'})</option>
                           <option value="humas">🤝 Wakasek Humas ({effectiveProfile.namaHumas || 'Belum diisi'})</option>
                           <option value="guru_bk">🧭 Guru BK ({effectiveProfile.namaBK || 'Belum diisi'})</option>
+                          {effectiveProfile.namaBK2 && (
+                            <option value="guru_bk_2">🧭 Guru BK 2 ({effectiveProfile.namaBK2})</option>
+                          )}
                           <option value="kepala_sekolah">🏫 Kepala Sekolah ({effectiveProfile.namaKepalaSekolah || 'Belum diisi'})</option>
                         </select>
                       </div>
+
+                      {/* Mapel selector for teacher signature */}
+                      {effectiveProfile?.role !== 'Wali Kelas' && (effectiveProfile?.mataPelajaran || effectiveProfile?.mataPelajaran2) && (
+                        <div className="sm:col-span-2">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>3. Mapel untuk Tanda Tangan Guru</span>
+                            {effectiveProfile?.mataPelajaran2 && (
+                              <span className="text-[9px] font-extrabold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">2 Mapel Aktif</span>
+                            )}
+                          </label>
+                          <select
+                            value={selectedMapelForSign}
+                            onChange={(e) => setSelectedMapelForSign(e.target.value)}
+                            className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#8dc63f]/20 focus:border-[#8dc63f] outline-none"
+                          >
+                            {effectiveProfile.mataPelajaran && (
+                              <option value={effectiveProfile.mataPelajaran}>
+                                Mapel 1: {effectiveProfile.mataPelajaran}
+                              </option>
+                            )}
+                            {effectiveProfile.mataPelajaran2 && (
+                              <option value={effectiveProfile.mataPelajaran2}>
+                                Mapel 2: {effectiveProfile.mataPelajaran2}
+                              </option>
+                            )}
+                            {effectiveProfile.mataPelajaran && effectiveProfile.mataPelajaran2 && (
+                              <option value={`${effectiveProfile.mataPelajaran} & ${effectiveProfile.mataPelajaran2}`}>
+                                Keduanya: {effectiveProfile.mataPelajaran} &amp; {effectiveProfile.mataPelajaran2}
+                              </option>
+                            )}
+                          </select>
+                        </div>
+                      )}
                     </div>
 
                     {/* Symmetrical Visual Signature Box */}
@@ -2574,6 +2632,9 @@ export default function StudentGradesView({
                           <option value="humas">🤝 Wakasek Humas</option>
                           <option value="guru_wali">👨‍🏫 Guru Wali</option>
                           <option value="guru_bk">🧭 Guru BK</option>
+                          {effectiveProfile.namaBK2 && (
+                            <option value="guru_bk_2">🧭 Guru BK 2 ({effectiveProfile.namaBK2})</option>
+                          )}
                           <option value="none">🚫 Tanpa TTD Kiri</option>
                         </select>
                       </div>
@@ -2589,8 +2650,45 @@ export default function StudentGradesView({
                           <option value="kesiswaan">👥 Wakasek Kesiswaan</option>
                           <option value="humas">🤝 Wakasek Humas</option>
                           <option value="guru_bk">🧭 Guru BK</option>
+                          {effectiveProfile.namaBK2 && (
+                            <option value="guru_bk_2">🧭 Guru BK 2 ({effectiveProfile.namaBK2})</option>
+                          )}
+                          <option value="kepala_sekolah">🏫 Kepala Sekolah</option>
                         </select>
                       </div>
+
+                      {/* Mapel selector for teacher signature in modal */}
+                      {effectiveProfile?.role !== 'Wali Kelas' && (effectiveProfile?.mataPelajaran || effectiveProfile?.mataPelajaran2) && (
+                        <div className="space-y-1 sm:col-span-2 pt-1">
+                          <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                            <span>Mapel untuk Tanda Tangan Guru</span>
+                            {effectiveProfile?.mataPelajaran2 && (
+                              <span className="text-[9px] font-extrabold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">2 Mapel Aktif</span>
+                            )}
+                          </label>
+                          <select
+                            value={selectedMapelForSign}
+                            onChange={(e) => setSelectedMapelForSign(e.target.value)}
+                            className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                          >
+                            {effectiveProfile.mataPelajaran && (
+                              <option value={effectiveProfile.mataPelajaran}>
+                                Mapel 1: {effectiveProfile.mataPelajaran}
+                              </option>
+                            )}
+                            {effectiveProfile.mataPelajaran2 && (
+                              <option value={effectiveProfile.mataPelajaran2}>
+                                Mapel 2: {effectiveProfile.mataPelajaran2}
+                              </option>
+                            )}
+                            {effectiveProfile.mataPelajaran && effectiveProfile.mataPelajaran2 && (
+                              <option value={`${effectiveProfile.mataPelajaran} & ${effectiveProfile.mataPelajaran2}`}>
+                                Keduanya: {effectiveProfile.mataPelajaran} &amp; {effectiveProfile.mataPelajaran2}
+                              </option>
+                            )}
+                          </select>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
