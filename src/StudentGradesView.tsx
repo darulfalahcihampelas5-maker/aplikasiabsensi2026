@@ -203,8 +203,8 @@ export default function StudentGradesView({
   });
 
   useEffect(() => {
-    if (effectiveProfile?.mataPelajaran && !selectedMapelForSign) {
-      setSelectedMapelForSign(effectiveProfile.mataPelajaran);
+    if (effectiveProfile?.mataPelajaran) {
+      setSelectedMapelForSign((prev) => prev || effectiveProfile.mataPelajaran || '');
     }
   }, [effectiveProfile?.mataPelajaran]);
 

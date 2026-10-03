@@ -138,8 +138,8 @@ export default function ReportsView({
   });
 
   useEffect(() => {
-    if (profileData?.mataPelajaran && !selectedMapelForSign) {
-      setSelectedMapelForSign(profileData.mataPelajaran);
+    if (profileData?.mataPelajaran) {
+      setSelectedMapelForSign((prev) => prev || profileData.mataPelajaran || '');
     }
   }, [profileData?.mataPelajaran]);
 
