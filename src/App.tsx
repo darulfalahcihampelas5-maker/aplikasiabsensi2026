@@ -1187,6 +1187,91 @@ export default function App() {
   const [isProfileEditing, setIsProfileEditing] = useState(false);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
 
+  // States & handler for editing name directly below profile photo
+  const [isEditingPhotoName, setIsEditingPhotoName] = useState(false);
+  const [photoNameInput, setPhotoNameInput] = useState('');
+  const [isSavingPhotoName, setIsSavingPhotoName] = useState(false);
+
+  const handleSavePhotoName = async () => {
+    const trimmed = photoNameInput.trim();
+    if (!trimmed) {
+      showToast('Nama profil tidak boleh kosong.', 'error');
+      return;
+    }
+    setIsSavingPhotoName(true);
+    trackOp('write', 1);
+
+    try {
+      // 1. Update profileData in state and localStorage
+      const updatedProfile = {
+        ...profileData,
+        namaGuruMapel: trimmed
+      };
+      setProfileData(updatedProfile);
+      safeSetLocalStorage('kaguci_profile_cache', JSON.stringify(updatedProfile));
+
+      // 2. Update activeUserCustomData if present
+      if (activeUserCustomData) {
+        const updatedCustomUser = {
+          ...activeUserCustomData,
+          fullname: trimmed
+        };
+        setActiveUserCustomData(updatedCustomUser);
+        safeSetLocalStorage('kaguci_active_custom_user', JSON.stringify(updatedCustomUser));
+        if (activeUserCustomData.username) {
+          safeSetLocalStorage(`kaguci_profile_${activeUserCustomData.username.toLowerCase().trim()}`, JSON.stringify(updatedProfile));
+        }
+      }
+
+      // 3. Update auth displayName
+      if (activeAuth.currentUser) {
+        updateProfile(activeAuth.currentUser, { displayName: trimmed }).catch(err => {
+          console.warn('Update displayName warning:', err);
+        });
+      }
+
+      // 4. Sync to Firestore
+      const syncPromises: Promise<unknown>[] = [];
+
+      if (activeAuth.currentUser) {
+        syncPromises.push(
+          setDoc(doc(activeDb, 'users', activeAuth.currentUser.uid), {
+            fullname: trimmed,
+            namaGuruMapel: trimmed,
+            displayName: trimmed,
+            profileData: updatedProfile,
+            ...updatedProfile
+          }, { merge: true }).catch(err => {
+            console.warn('Sync profile to activeDb warning:', err);
+          })
+        );
+      }
+
+      if (activeUserCustomData?.username) {
+        syncPromises.push(
+          setDoc(doc(dbDefault, 'custom_accounts', activeUserCustomData.username.toLowerCase().trim()), {
+            fullname: trimmed,
+            namaGuruMapel: trimmed,
+            profileData: updatedProfile
+          }, { merge: true }).catch(err => {
+            console.warn('Sync to custom_accounts warning:', err);
+          })
+        );
+      }
+
+      const timeoutPromise = new Promise<void>((resolve) => setTimeout(() => resolve(), 3000));
+      await Promise.race([Promise.all(syncPromises), timeoutPromise]);
+
+      showToast('Nama profil berhasil disimpan', 'success');
+      setIsEditingPhotoName(false);
+    } catch (err) {
+      console.error('Error saving photo name:', err);
+      showToast('Gagal menyimpan nama: ' + (err instanceof Error ? err.message : 'Kesalahan sistem'), 'error');
+    } finally {
+      setIsSavingPhotoName(false);
+    }
+  };
+
   // States & helper for Admin (Kumpulan User) - Custom Requested
   const isAdmin = useMemo(() => {
     const email = (activeAuth.currentUser?.email || '').toLowerCase().trim();
@@ -3806,7 +3891,69 @@ export default function App() {
               </div>
 
               <div className="text-center w-full mb-8 flex flex-col items-center">
-                <h3 className="text-xl font-black text-slate-800">{activeUserCustomData?.fullname || profileData.namaGuruMapel || 'Agan Parta,S.Kom.'}</h3>
+                {!isEditingPhotoName ? (
+                  <div className="flex items-center justify-center gap-2 max-w-xl group">
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                      {activeUserCustomData?.fullname || profileData.namaGuruMapel || 'Agan Parta,S.Kom.'}
+                    </h3>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setPhotoNameInput(activeUserCustomData?.fullname || profileData.namaGuruMapel || 'Agan Parta,S.Kom.');
+                        setIsEditingPhotoName(true);
+                      }}
+                      className="p-1.5 rounded-xl text-slate-400 hover:text-[#8dc63f] hover:bg-emerald-50 active:scale-95 transition-all cursor-pointer border border-transparent hover:border-emerald-200"
+                      title="Edit Nama di Bawah Foto Profil"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-md flex flex-col items-center gap-2.5 my-1">
+                    <div className="w-full">
+                      <input 
+                        type="text"
+                        value={photoNameInput}
+                        onChange={(e) => setPhotoNameInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleSavePhotoName();
+                          } else if (e.key === 'Escape') {
+                            setIsEditingPhotoName(false);
+                          }
+                        }}
+                        autoFocus
+                        placeholder="Ketik nama di bawah foto profil..."
+                        className="w-full px-4 py-2 text-center text-sm font-bold text-slate-800 bg-slate-50 border-2 border-[#8dc63f] rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-200 transition-all shadow-xs"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        type="button"
+                        onClick={handleSavePhotoName}
+                        disabled={isSavingPhotoName}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#8dc63f] hover:bg-[#7bc025] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:scale-102 active:scale-98 cursor-pointer disabled:opacity-60"
+                        title="Simpan Nama"
+                      >
+                        {isSavingPhotoName ? (
+                          <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        ) : (
+                          <Save className="w-3.5 h-3.5" />
+                        )}
+                        Simpan
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setIsEditingPhotoName(false)}
+                        disabled={isSavingPhotoName}
+                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-all active:scale-98 cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <p className="text-sm font-medium text-slate-600 my-1">{activeAuth.currentUser?.email || 'N/A'}</p>
                 <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-[#8dc63f] px-3 py-1 rounded-lg text-xs font-bold mt-2">
                   <span className="w-2 h-2 rounded-full bg-[#8dc63f]"></span> Online
@@ -4568,6 +4715,15 @@ export default function App() {
 
                           // 1. Immediately update state so UI updates instantaneously
                           setProfileData(cleanProfileData);
+
+                          if (cleanProfileData.namaGuruMapel && activeUserCustomData) {
+                            const updatedUserCustom = {
+                              ...activeUserCustomData,
+                              fullname: cleanProfileData.namaGuruMapel
+                            };
+                            setActiveUserCustomData(updatedUserCustom);
+                            safeSetLocalStorage('kaguci_active_custom_user', JSON.stringify(updatedUserCustom));
+                          }
 
                           // 2. Immediately persist to localStorage for instant offline & reload resilience
                           if (activeUserCustomData?.username) {
