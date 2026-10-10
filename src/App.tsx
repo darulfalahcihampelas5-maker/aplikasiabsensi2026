@@ -1202,15 +1202,7 @@ export default function App() {
     trackOp('write', 1);
 
     try {
-      // 1. Update profileData in state and localStorage
-      const updatedProfile = {
-        ...profileData,
-        namaGuruMapel: trimmed
-      };
-      setProfileData(updatedProfile);
-      safeSetLocalStorage('kaguci_profile_cache', JSON.stringify(updatedProfile));
-
-      // 2. Update activeUserCustomData if present
+      // 1. Update activeUserCustomData if present (ONLY affects beranda / display name & photo name)
       if (activeUserCustomData) {
         const updatedCustomUser = {
           ...activeUserCustomData,
@@ -1219,28 +1211,25 @@ export default function App() {
         setActiveUserCustomData(updatedCustomUser);
         safeSetLocalStorage('kaguci_active_custom_user', JSON.stringify(updatedCustomUser));
         if (activeUserCustomData.username) {
-          safeSetLocalStorage(`kaguci_profile_${activeUserCustomData.username.toLowerCase().trim()}`, JSON.stringify(updatedProfile));
+          safeSetLocalStorage(`kaguci_profile_${activeUserCustomData.username.toLowerCase().trim()}`, JSON.stringify(updatedCustomUser));
         }
       }
 
-      // 3. Update auth displayName
+      // 2. Update auth displayName
       if (activeAuth.currentUser) {
         updateProfile(activeAuth.currentUser, { displayName: trimmed }).catch(err => {
           console.warn('Update displayName warning:', err);
         });
       }
 
-      // 4. Sync to Firestore
+      // 3. Sync to Firestore (fullname only, NOT namaGuruMapel / profileData)
       const syncPromises: Promise<unknown>[] = [];
 
       if (activeAuth.currentUser) {
         syncPromises.push(
           setDoc(doc(activeDb, 'users', activeAuth.currentUser.uid), {
             fullname: trimmed,
-            namaGuruMapel: trimmed,
-            displayName: trimmed,
-            profileData: updatedProfile,
-            ...updatedProfile
+            displayName: trimmed
           }, { merge: true }).catch(err => {
             console.warn('Sync profile to activeDb warning:', err);
           })
@@ -1250,9 +1239,7 @@ export default function App() {
       if (activeUserCustomData?.username) {
         syncPromises.push(
           setDoc(doc(dbDefault, 'custom_accounts', activeUserCustomData.username.toLowerCase().trim()), {
-            fullname: trimmed,
-            namaGuruMapel: trimmed,
-            profileData: updatedProfile
+            fullname: trimmed
           }, { merge: true }).catch(err => {
             console.warn('Sync to custom_accounts warning:', err);
           })
@@ -1262,7 +1249,7 @@ export default function App() {
       const timeoutPromise = new Promise<void>((resolve) => setTimeout(() => resolve(), 3000));
       await Promise.race([Promise.all(syncPromises), timeoutPromise]);
 
-      showToast('Nama profil berhasil disimpan', 'success');
+      showToast('Nama di bawah foto profil berhasil disimpan', 'success');
       setIsEditingPhotoName(false);
     } catch (err) {
       console.error('Error saving photo name:', err);
@@ -4715,15 +4702,6 @@ export default function App() {
 
                           // 1. Immediately update state so UI updates instantaneously
                           setProfileData(cleanProfileData);
-
-                          if (cleanProfileData.namaGuruMapel && activeUserCustomData) {
-                            const updatedUserCustom = {
-                              ...activeUserCustomData,
-                              fullname: cleanProfileData.namaGuruMapel
-                            };
-                            setActiveUserCustomData(updatedUserCustom);
-                            safeSetLocalStorage('kaguci_active_custom_user', JSON.stringify(updatedUserCustom));
-                          }
 
                           // 2. Immediately persist to localStorage for instant offline & reload resilience
                           if (activeUserCustomData?.username) {

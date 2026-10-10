@@ -16,7 +16,7 @@ import {
   Eye,
   Building2,
   User as UserIcon,
-  ArrowLeft
+  SlidersHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format, parseISO } from 'date-fns';
@@ -1187,43 +1187,32 @@ export default function ReportsView({
       ) : selectedClass === 'rekap_siswa' ? (
         <div className="space-y-6">
           {/* Navigasi Pilihan Rekapitulasi Presensi - Tombol Kelas & Rekap Persiswa Tetap Muncul */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
-                Pilihan Rekapitulasi Presensi
-              </span>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                {profileData?.waliKelasClass && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedClass(profileData.waliKelasClass!)}
-                    className="py-2 px-3.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer text-slate-700 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 flex items-center gap-2 shadow-xs border border-slate-200/60"
-                    title={`Pindah ke Laporan Rekap Presensi Kelas ${profileData.waliKelasClass}`}
-                  >
-                    <Building2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>🏫 Kelas {profileData.waliKelasClass} (Laporan Kelas)</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="py-2 px-3.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer bg-emerald-600 text-white shadow-xs flex items-center gap-2"
-                >
-                  <UserIcon className="w-4 h-4 shrink-0 text-white" />
-                  <span>👤 Rekap Persiswa (Aktif)</span>
-                </button>
-              </div>
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5 text-slate-800 font-bold text-xs sm:text-sm">
+              <SlidersHorizontal className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Pilihan Rekapitulasi Presensi</span>
             </div>
 
-            {profileData?.waliKelasClass && (
+            <div className="flex items-center gap-2.5 w-full lg:w-auto">
+              {profileData?.waliKelasClass && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedClass(profileData.waliKelasClass!)}
+                  className="flex-1 lg:flex-none py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer text-slate-700 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 flex items-center justify-center gap-2 shadow-xs border border-slate-200/80"
+                  title={`Pindah ke Laporan Rekap Presensi Kelas ${profileData.waliKelasClass}`}
+                >
+                  <Building2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>🏫 Kelas {profileData.waliKelasClass} (Laporan Kelas)</span>
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setSelectedClass(profileData.waliKelasClass!)}
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer self-start sm:self-auto"
+                className="flex-1 lg:flex-none py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer bg-emerald-600 text-white shadow-xs flex items-center justify-center gap-2"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Kembali ke Kelas {profileData.waliKelasClass}
+                <UserIcon className="w-4 h-4 shrink-0 text-white" />
+                <span>👤 Rekap Persiswa (Aktif)</span>
               </button>
-            )}
+            </div>
           </div>
 
           <StudentAttendanceRecapView
@@ -1287,14 +1276,14 @@ export default function ReportsView({
                 </div>
 
                 {isWaliKelas && profileData?.waliKelasClass && (
-                  <div className="grid grid-cols-2 gap-1.5 mb-2.5 bg-slate-100 p-1 rounded-xl">
+                  <div className="grid grid-cols-2 gap-2 mb-3 bg-slate-100 p-1.5 rounded-xl border border-slate-200/80 shadow-xs">
                     <button
                       type="button"
                       onClick={() => setSelectedClass(profileData.waliKelasClass || '')}
-                      className={`py-2 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      className={`py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                         selectedClass !== 'rekap_siswa'
                           ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                       }`}
                     >
                       🏫 Kelas {profileData.waliKelasClass}
@@ -1302,10 +1291,10 @@ export default function ReportsView({
                     <button
                       type="button"
                       onClick={() => setSelectedClass('rekap_siswa')}
-                      className={`py-2 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      className={`py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                         selectedClass === 'rekap_siswa'
                           ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                       }`}
                     >
                       👤 Rekap Persiswa
