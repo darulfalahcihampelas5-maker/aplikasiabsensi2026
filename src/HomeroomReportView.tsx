@@ -1408,17 +1408,22 @@ export default function HomeroomReportView({
       doc.setFont("helvetica", "normal");
       if (midSig.nip) doc.text(midSig.nip, midX, sigY + 28);
 
-      // Kanan (Wali Kelas)
+      // Kanan (Wali Kelas) - Diambil langsung dari Nama Guru di profil
+      const rightTeacherName = (profileData?.namaGuruMapel || profileData?.namaGuruWali || '').trim() || '(________________________)';
+      const rightTeacherNIP = (profileData?.nipGuruMapel || '').trim() ? `NIP. ${profileData.nipGuruMapel.trim()}` : ((profileData?.nipGuruWali || '').trim() ? `NIP. ${profileData.nipGuruWali.trim()}` : '');
+
       doc.text(dateStrNow, rightX, sigY);
       doc.text(`Wali Kelas ${selectedClass || profileData?.waliKelasClass || ''}`, rightX, sigY + 5);
       doc.setFont("helvetica", "bold");
-      doc.text(profileData?.namaGuruMapel || '(________________________)', rightX, sigY + 23);
+      doc.text(rightTeacherName, rightX, sigY + 23);
       doc.setFont("helvetica", "normal");
-      if (profileData?.nipGuruMapel) doc.text(`NIP. ${profileData.nipGuruMapel}`, rightX, sigY + 28);
+      if (rightTeacherNIP) doc.text(rightTeacherNIP, rightX, sigY + 28);
     } else {
       // Format 1 atau 2 Tanda Tangan
       const activeLeft = leftSig.enabled ? leftSig : (midSig.enabled ? midSig : null);
       const rightSigX = pageWidth - 80;
+      const rightTeacherName = (profileData?.namaGuruMapel || profileData?.namaGuruWali || '').trim() || '(________________________)';
+      const rightTeacherNIP = (profileData?.nipGuruMapel || '').trim() ? `NIP. ${profileData.nipGuruMapel.trim()}` : ((profileData?.nipGuruWali || '').trim() ? `NIP. ${profileData.nipGuruWali.trim()}` : '');
 
       if (activeLeft) {
         doc.text('Mengetahui,', 20, sigY);
@@ -1434,10 +1439,10 @@ export default function HomeroomReportView({
       doc.text(dateStrNow, rightSigX, sigY);
       doc.text(`Wali Kelas ${selectedClass || profileData?.waliKelasClass || ''}`, rightSigX, sigY + 5);
       doc.setFont("helvetica", "bold");
-      doc.text(profileData?.namaGuruMapel || '(________________________)', rightSigX, sigY + 23);
+      doc.text(rightTeacherName, rightSigX, sigY + 23);
       doc.setFont("helvetica", "normal");
-      if (profileData?.nipGuruMapel) {
-        doc.text(`NIP. ${profileData.nipGuruMapel}`, rightSigX, sigY + 28);
+      if (rightTeacherNIP) {
+        doc.text(rightTeacherNIP, rightSigX, sigY + 28);
       }
     }
     
@@ -2555,6 +2560,20 @@ export default function HomeroomReportView({
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* Informasi Tanda Tangan Kanan (Wali Kelas) - Diambil langsung dari Nama Guru di Profil */}
+            <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-amber-900">Tanda Tangan Kanan (Wali Kelas {selectedClass || profileData?.waliKelasClass || ''}):</span>
+                <span className="font-bold text-slate-800">{profileData?.namaGuruMapel || profileData?.namaGuruWali || '(Belum diisi di profil: Nama Guru)'}</span>
+                <span className="text-[11px] text-slate-500 font-mono">
+                  {profileData?.nipGuruMapel ? `NIP. ${profileData.nipGuruMapel}` : (profileData?.nipGuruWali ? `NIP. ${profileData.nipGuruWali}` : 'NIP. -')}
+                </span>
+              </div>
+              <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-bold self-start sm:self-auto">
+                Diambil dari Nama Guru di Profil
+              </span>
             </div>
 
             {/* Tombol Aksi Simetris & Presisi: Preview & Cetak */}

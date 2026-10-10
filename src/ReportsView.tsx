@@ -465,7 +465,7 @@ export default function ReportsView({
     if (midSigner.enabled) {
       row6[midCol] = midSigner.name;
     }
-    row6[rightCol] = profileData.namaGuruMapel || '(________________________)';
+    row6[rightCol] = (profileData.namaGuruMapel || profileData.namaGuruWali || '').trim() || '(________________________)';
 
     const row7 = createRow();
     if (leftSigner.enabled) {
@@ -474,7 +474,8 @@ export default function ReportsView({
     if (midSigner.enabled) {
       row7[midCol] = midSigner.nip;
     }
-    row7[rightCol] = profileData.nipGuruMapel ? `NIP. ${profileData.nipGuruMapel}` : '';
+    const rightExcelNIP = (profileData.nipGuruMapel || '').trim() ? `NIP. ${profileData.nipGuruMapel.trim()}` : ((profileData.nipGuruWali || '').trim() ? `NIP. ${profileData.nipGuruWali.trim()}` : '');
+    row7[rightCol] = rightExcelNIP;
 
     XLSX.utils.sheet_add_aoa(worksheet, [[], [], row1, row2, row3, row4, row5, row6, row7], { origin: -1 });
 
@@ -1032,8 +1033,8 @@ export default function ReportsView({
         const midSigner = getMidSignerDetails();
         const is3Signers = leftSigner.enabled && midSigner.enabled;
 
-        const teacherName = profileData?.namaGuruMapel || '(________________________)';
-        const teacherNIP = profileData?.nipGuruMapel ? `NIP. ${profileData.nipGuruMapel}` : '';
+        const teacherName = (profileData?.namaGuruMapel || profileData?.namaGuruWali || '').trim() || '(________________________)';
+        const teacherNIP = (profileData?.nipGuruMapel || '').trim() ? `NIP. ${profileData.nipGuruMapel.trim()}` : ((profileData?.nipGuruWali || '').trim() ? `NIP. ${profileData.nipGuruWali.trim()}` : '');
 
         const activeMapel = (selectedMapelForSign || profileData?.mataPelajaran || '').trim();
         const teacherLabel = profileData?.role === 'Wali Kelas'

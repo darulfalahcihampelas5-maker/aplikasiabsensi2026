@@ -155,6 +155,7 @@ export default function StudentAttendanceRecapView({
   // Signer options
   const [leftSignerRole, setLeftSignerRole] = useState<RecapSignerRoleType>('kepala_sekolah');
   const [midSignerRole, setMidSignerRole] = useState<RecapSignerRoleType>('none');
+  const [rightSignerType, setRightSignerType] = useState<'auto' | 'wali_kelas' | 'guru_mapel'>('auto');
 
   // Export loading state
   const [isExporting, setIsExporting] = useState<boolean>(false);
@@ -348,6 +349,32 @@ export default function StudentAttendanceRecapView({
   const midSigner = useMemo(() => getSignerDetails(midSignerRole), [midSignerRole, getSignerDetails]);
   const is3Signers = midSigner.enabled && midSignerRole !== 'none';
 
+  // Penentuan Tanda Tangan Kanan: Sesuai peran Wali Kelas atau Guru Mapel
+  const resolvedRightRole = useMemo<'wali_kelas' | 'guru_mapel'>(() => {
+    if (rightSignerType === 'wali_kelas') return 'wali_kelas';
+    if (rightSignerType === 'guru_mapel') return 'guru_mapel';
+    return isWaliKelas ? 'wali_kelas' : 'guru_mapel';
+  }, [rightSignerType, isWaliKelas]);
+
+  const rightSignerTitle = useMemo(() => {
+    if (resolvedRightRole === 'wali_kelas') {
+      const cls = selectedStudent?.class || selectedClass || profileData?.waliKelasClass || '';
+      return `Wali Kelas ${cls}`.trim();
+    }
+    const mapel = (profileData?.mataPelajaran || '').trim();
+    return mapel ? `Guru Mata Pelajaran ${mapel}` : 'Guru Mata Pelajaran';
+  }, [resolvedRightRole, selectedStudent?.class, selectedClass, profileData?.waliKelasClass, profileData?.mataPelajaran]);
+
+  // Nama Guru & NIP tanda tangan: Diambil langsung dari Nama Guru & NIP Guru yang ditulis di profil
+  const teacherName = useMemo(() => {
+    return (profileData?.namaGuruMapel || '').trim() || (profileData?.namaGuruWali || '').trim() || '(________________________)';
+  }, [profileData?.namaGuruMapel, profileData?.namaGuruWali]);
+
+  const teacherNIP = useMemo(() => {
+    const nip = (profileData?.nipGuruMapel || '').trim() || (profileData?.nipGuruWali || '').trim();
+    return nip ? `NIP. ${nip}` : '';
+  }, [profileData?.nipGuruMapel, profileData?.nipGuruWali]);
+
   // Generate jsPDF Document
   const generateStudentPDF = (): { doc: jsPDF; fileName: string } => {
     if (!selectedStudent) {
@@ -377,47 +404,68 @@ export default function StudentAttendanceRecapView({
     doc.text('REKAPITULASI KEHADIRAN SISWA', pageWidth / 2, titleY, { align: 'center' });
 
     // 3. Metadata Siswa & Periode (Dibawah Kop Surat)
-    // Sebelah Kiri: Nama Lengkap Siswa, NIS, Kelas
-    // Sebelah Kanan: Semester, Periode, Tahun Pelajaran
+    // Sebelah Kiri: Nama Lengkap Siswa, NIS, Kelas, Periode
+    // Sebelah Kanan: Semester, Tahun Pelajaran
     doc.setFontSize(9.5);
     doc.setFont('helvetica', 'normal');
 
+    // Posisi X kolom kiri yang presisi dan simetris
     const leftColX = 14;
-    const leftValX = 56;
-    const rightColX = pageWidth - 92;
-    const rightValX = pageWidth - 42;
+    const leftColonX = 54;
+    const leftValX = 57;
 
-    const row1Y = titleY + 8;
-    const row2Y = titleY + 14;
-    const row3Y = titleY + 20;
-    const row4Y = titleY + 26;
+    // Posisi X kolom kanan yang presisi dan simetris
+    const rightColX = 122;
+    const rightColonX = 156;
+    const rightValX = 159;
+
+    const row1Y = titleY + 7;
+    const row2Y = titleY + 13;
+    const row3Y = titleY + 19;
+    const row4Y = titleY + 25;
 
     // Row 1: Nama Lengkap Siswa | Semester
     doc.text('Nama Lengkap Siswa', leftColX, row1Y);
+    doc.text(':', leftColonX, row1Y);
     doc.setFont('helvetica', 'bold');
-    doc.text(`: ${selectedStudent.name}`, leftValX, row1Y);
+    doc.text(selectedStudent.name, leftValX, row1Y);
     doc.setFont('helvetica', 'normal');
 
     doc.text('Semester', rightColX, row1Y);
-    doc.text(`: ${profileData?.semester || '-'}`, rightValX, row1Y);
+    doc.text(':', rightColonX, row1Y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(profileData?.semester || '-', rightValX, row1Y);
+    doc.setFont('helvetica', 'normal');
 
     // Row 2: NIS | Tahun Pelajaran
     doc.text('NIS', leftColX, row2Y);
-    doc.text(`: ${selectedStudent.nisn || '-'}`, leftValX, row2Y);
+    doc.text(':', leftColonX, row2Y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(selectedStudent.nisn || '-', leftValX, row2Y);
+    doc.setFont('helvetica', 'normal');
 
     doc.text('Tahun Pelajaran', rightColX, row2Y);
-    doc.text(`: ${profileData?.tahunPelajaran || '-'}`, rightValX, row2Y);
+    doc.text(':', rightColonX, row2Y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(profileData?.tahunPelajaran || '-', rightValX, row2Y);
+    doc.setFont('helvetica', 'normal');
 
     // Row 3: Kelas
     doc.text('Kelas', leftColX, row3Y);
-    doc.text(`: ${selectedStudent.class || selectedClass}`, leftValX, row3Y);
+    doc.text(':', leftColonX, row3Y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(selectedStudent.class || selectedClass, leftValX, row3Y);
+    doc.setFont('helvetica', 'normal');
 
-    // Row 4: Periode (Dipindahkan ke sebelah kiri di bawah Kelas)
+    // Row 4: Periode
     doc.text('Periode', leftColX, row4Y);
-    doc.text(`: ${periodeText}`, leftValX, row4Y);
+    doc.text(':', leftColonX, row4Y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(periodeText, leftValX, row4Y);
+    doc.setFont('helvetica', 'normal');
 
     // 4. Tabel Presensi Persiswa:
-    // Kolom: No | Tanggal Presensi | Keterangan | Persentase (di-merge sesuai jumlah baris)
+    // Kolom: No | Tanggal Presensi | Keterangan | Persentase (di-merge sesuai jumlah baris per halaman)
     const tableStartY = row4Y + 6;
     const headers = [
       'No', 
@@ -426,6 +474,28 @@ export default function StudentAttendanceRecapView({
       'Persentase'
     ];
 
+    // Pembagian rowSpan presisi agar tidak loncat ke halaman baru sebelum halaman 1 penuh:
+    // Pada A4 portrait, halaman 1 mampu menampung hingga 26 baris sebelum batas margin bawah.
+    // Halaman berikutnya mampu menampung hingga 38 baris.
+    const PAGE_1_CAPACITY = 26;
+    const PAGE_N_CAPACITY = 38;
+    const spanBlocks: { startIndex: number; spanLength: number }[] = [];
+    if (recapRows.length > 0) {
+      if (recapRows.length <= PAGE_1_CAPACITY) {
+        spanBlocks.push({ startIndex: 0, spanLength: recapRows.length });
+      } else {
+        spanBlocks.push({ startIndex: 0, spanLength: PAGE_1_CAPACITY });
+        let remaining = recapRows.length - PAGE_1_CAPACITY;
+        let currStart = PAGE_1_CAPACITY;
+        while (remaining > 0) {
+          const spanLen = Math.min(remaining, PAGE_N_CAPACITY);
+          spanBlocks.push({ startIndex: currStart, spanLength: spanLen });
+          currStart += spanLen;
+          remaining -= spanLen;
+        }
+      }
+    }
+
     const body = recapRows.map((r, idx) => {
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       const rowArr: any[] = [
@@ -433,16 +503,20 @@ export default function StudentAttendanceRecapView({
         r.formattedDate,
         r.status
       ];
-      if (idx === 0) {
+      const block = spanBlocks.find(b => b.startIndex === idx);
+      if (block) {
         rowArr.push({
           content: `${recapStats.persentase}%`,
-          rowSpan: recapRows.length > 0 ? recapRows.length : 1,
+          rowSpan: block.spanLength,
           styles: { 
             halign: 'center', 
             valign: 'middle', 
             fontStyle: 'bold', 
             fontSize: 10,
-            fillColor: [250, 250, 250]
+            fillColor: [250, 250, 250],
+            textColor: [0, 0, 0],
+            lineWidth: 0.2,
+            lineColor: [0, 0, 0]
           }
         });
       }
@@ -454,6 +528,9 @@ export default function StudentAttendanceRecapView({
       head: [headers],
       body: body,
       theme: 'grid' as const,
+      rowPageBreak: 'auto' as const,
+      pageBreak: 'auto' as const,
+      margin: { left: 14, right: 14, top: 18, bottom: 14 },
       headStyles: {
         fillColor: [240, 240, 240],
         textColor: 0,
@@ -468,24 +545,32 @@ export default function StudentAttendanceRecapView({
         cellPadding: 2.2,
         lineWidth: 0.2,
         lineColor: [0, 0, 0],
-        textColor: 0
+        textColor: 0,
+        valign: 'middle' as const
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 14 },
         1: { halign: 'left', cellWidth: 96 },
         2: { halign: 'center', cellWidth: 42 },
-        3: { halign: 'center', cellWidth: 30 }
+        3: { halign: 'center', valign: 'middle', cellWidth: 30 }
       },
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       didParseCell: function(cellData: any) {
         if (cellData.section === 'body') {
           if (cellData.column.index === 0 || cellData.column.index === 2 || cellData.column.index === 3) {
             cellData.cell.styles.halign = 'center';
+            cellData.cell.styles.valign = 'middle';
           }
           if (cellData.column.index === 2) {
             // Sesuai Request: warna text Keterangan hitam
             cellData.cell.styles.textColor = 0;
             cellData.cell.styles.fontStyle = 'bold';
+          }
+          if (cellData.column.index === 3) {
+            cellData.cell.styles.textColor = 0;
+            cellData.cell.styles.fontStyle = 'bold';
+            cellData.cell.styles.halign = 'center';
+            cellData.cell.styles.valign = 'middle';
           }
         }
       }
@@ -504,8 +589,10 @@ export default function StudentAttendanceRecapView({
     const tableFinalY = (doc as any).lastAutoTable?.finalY || 100;
 
     // 5. Tabel Rekapitulasi Statistik Kehadiran
-    let statsY = tableFinalY + 6;
-    if (statsY + 55 > pageHeight) {
+    // Pastikan jika masih muat di halaman yang sama, tabel statistik tidak loncat ke halaman baru
+    let statsY = tableFinalY + 5;
+    const STATS_TABLE_HEIGHT = 16;
+    if (statsY + STATS_TABLE_HEIGHT > pageHeight - 14) {
       doc.addPage();
       statsY = 20;
     }
@@ -555,11 +642,12 @@ export default function StudentAttendanceRecapView({
     }
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    const afterStatsY = (doc as any).lastAutoTable?.finalY || (statsY + 15);
+    const afterStatsY = (doc as any).lastAutoTable?.finalY || (statsY + 14);
 
-    // 6. Tanda Tangan Formal
-    let sigY = afterStatsY + 8;
-    if (sigY + 45 > pageHeight) {
+    // 6. Tanda Tangan Formal (Tepat di bawah tabel)
+    const SIG_HEIGHT = 42;
+    let sigY = afterStatsY + 6;
+    if (sigY + SIG_HEIGHT > pageHeight - 14) {
       doc.addPage();
       sigY = 20;
     }
@@ -597,18 +685,16 @@ export default function StudentAttendanceRecapView({
       }
     }
 
-    // Right signer (Wali Kelas)
+    // Right signer (Wali Kelas / Guru Mapel) - Diambil dari Nama Guru di profil
     const rightX = pageWidth - 65;
     const dateFormattedNow = format(new Date(), 'dd MMMM yyyy', { locale: id });
     doc.text(`Cililin, ${dateFormattedNow}`, rightX, sigY);
-    doc.text(`Wali Kelas ${selectedStudent.class || selectedClass}`, rightX, sigY + 5);
+    doc.text(rightSignerTitle, rightX, sigY + 5);
     doc.setFont('helvetica', 'bold');
-    const waliName = profileData?.namaGuruWali || profileData?.namaGuruMapel || '(________________________)';
-    doc.text(waliName, rightX, sigY + 28);
+    doc.text(teacherName, rightX, sigY + 28);
     doc.setFont('helvetica', 'normal');
-    const waliNIP = profileData?.nipGuruWali ? `NIP. ${profileData.nipGuruWali}` : (profileData?.nipGuruMapel ? `NIP. ${profileData.nipGuruMapel}` : '');
-    if (waliNIP) {
-      doc.text(waliNIP, rightX, sigY + 33);
+    if (teacherNIP) {
+      doc.text(teacherNIP, rightX, sigY + 33);
     }
 
     const safeName = selectedStudent.name.replace(/\s+/g, '_');
@@ -641,10 +727,10 @@ export default function StudentAttendanceRecapView({
         ['LAPORAN REKAPITULASI KEHADIRAN SISWA'],
         ['SMA NEGERI 1 CILILIN'],
         [],
-        ['Nama Lengkap Siswa', `: ${selectedStudent.name}`, '', 'Semester', `: ${profileData?.semester || '-'}`],
-        ['NIS', `: ${selectedStudent.nisn || '-'}`, '', 'Tahun Pelajaran', `: ${profileData?.tahunPelajaran || '-'}`],
-        ['Kelas', `: ${selectedStudent.class || selectedClass}`],
-        ['Periode', `: ${periodeText}`],
+        ['Nama Lengkap Siswa', ':', selectedStudent.name, '', 'Semester', ':', profileData?.semester || '-'],
+        ['NIS', ':', selectedStudent.nisn || '-', '', 'Tahun Pelajaran', ':', profileData?.tahunPelajaran || '-'],
+        ['Kelas', ':', selectedStudent.class || selectedClass],
+        ['Periode', ':', periodeText],
         [],
         ['No', 'Tanggal Presensi', 'Keterangan', 'Persentase']
       ];
@@ -668,7 +754,40 @@ export default function StudentAttendanceRecapView({
         ['Persentase Kehadiran', `${recapStats.persentase}%`]
       ];
 
-      const wsData = [...headerRows, ...dataRows, ...statsRows];
+      const dateFormattedNow = format(new Date(), 'dd MMMM yyyy', { locale: id });
+      const sigRows = [
+        [],
+        [],
+        [
+          leftSigner.enabled ? 'Mengetahui,' : '',
+          midSigner.enabled ? 'Mengetahui,' : '',
+          '',
+          `Cililin, ${dateFormattedNow}`
+        ],
+        [
+          leftSigner.enabled ? leftSigner.title : '',
+          midSigner.enabled ? midSigner.title : '',
+          '',
+          rightSignerTitle
+        ],
+        [],
+        [],
+        [],
+        [
+          leftSigner.enabled ? leftSigner.name : '',
+          midSigner.enabled ? midSigner.name : '',
+          '',
+          teacherName
+        ],
+        [
+          leftSigner.enabled ? (leftSigner.nip || '') : '',
+          midSigner.enabled ? (midSigner.nip || '') : '',
+          '',
+          teacherNIP || ''
+        ]
+      ];
+
+      const wsData = [...headerRows, ...dataRows, ...statsRows, ...sigRows];
       const worksheet = XLSX.utils.aoa_to_sheet(wsData);
 
       const startDataRow = 9;
@@ -985,15 +1104,40 @@ export default function StudentAttendanceRecapView({
                 </select>
               </div>
 
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center justify-between">
+                  <span>3. Ttd Kanan (Wali Kelas / Guru Mapel)</span>
+                  <span className="text-[9px] text-emerald-700 bg-emerald-100 font-bold px-1.5 py-0.5 rounded">Profil</span>
+                </label>
+                <select
+                  value={rightSignerType}
+                  onChange={(e) => setRightSignerType(e.target.value as 'auto' | 'wali_kelas' | 'guru_mapel')}
+                  className="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 mb-2"
+                >
+                  <option value="auto">
+                    ⚙️ Otomatis Sesuai Profil ({isWaliKelas ? 'Wali Kelas' : 'Guru Mapel'})
+                  </option>
+                  <option value="wali_kelas">
+                    🏫 Wali Kelas ({selectedStudent?.class || selectedClass})
+                  </option>
+                  <option value="guru_mapel">
+                    📖 Guru Mata Pelajaran {profileData?.mataPelajaran ? `(${profileData.mataPelajaran})` : ''}
+                  </option>
+                </select>
+              </div>
+
               <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
-                <div className="font-bold text-emerald-800">
-                  Tanda Tangan Kanan (Wali Kelas):
+                <div className="font-bold text-emerald-800 flex items-center justify-between">
+                  <span>Penandatangan: {rightSignerTitle}</span>
+                  <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
+                    Nama Guru Profil
+                  </span>
                 </div>
-                <div>
-                  {profileData?.namaGuruWali || profileData?.namaGuruMapel || 'Belum diatur'}
+                <div className="font-bold text-slate-800">
+                  {teacherName}
                 </div>
                 <div className="text-[10px] text-slate-500 font-mono">
-                  {profileData?.nipGuruWali ? `NIP. ${profileData.nipGuruWali}` : (profileData?.nipGuruMapel ? `NIP. ${profileData.nipGuruMapel}` : 'NIP. -')}
+                  {teacherNIP || 'NIP. -'}
                 </div>
               </div>
             </div>
@@ -1106,41 +1250,47 @@ export default function StudentAttendanceRecapView({
                     {/* 3. Metadata Siswa & Periode di Bawah Kop Surat */}
                     {/* Sebelah Kiri: Nama Lengkap Siswa, NIS, Kelas, Periode | Sebelah Kanan: Semester, Tahun Pelajaran */}
                     <div className="flex justify-between items-start gap-6 text-[12.5px] mt-4">
-                      {/* Sebelah Kiri */}
+                      {/* Sebelah Kiri (Titik Dua Simetris & Presisi) */}
                       <div className="space-y-1">
-                        <div className="flex">
-                          <span className="w-36 font-semibold text-slate-700 shrink-0">Nama Lengkap Siswa</span>
-                          <span className="font-bold text-black">: {selectedStudent.name}</span>
+                        <div className="flex items-center">
+                          <span className="w-[144px] font-semibold text-slate-700 shrink-0">Nama Lengkap Siswa</span>
+                          <span className="w-[16px] text-center font-bold text-black shrink-0">:</span>
+                          <span className="font-bold text-black flex-1">{selectedStudent.name}</span>
                         </div>
-                        <div className="flex">
-                          <span className="w-36 font-semibold text-slate-700 shrink-0">NIS</span>
-                          <span className="font-bold text-black font-mono">: {selectedStudent.nisn || '-'}</span>
+                        <div className="flex items-center">
+                          <span className="w-[144px] font-semibold text-slate-700 shrink-0">NIS</span>
+                          <span className="w-[16px] text-center font-bold text-black shrink-0">:</span>
+                          <span className="font-bold text-black font-mono flex-1">{selectedStudent.nisn || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="w-36 font-semibold text-slate-700 shrink-0">Kelas</span>
-                          <span className="font-bold text-black">: {selectedStudent.class || selectedClass}</span>
+                        <div className="flex items-center">
+                          <span className="w-[144px] font-semibold text-slate-700 shrink-0">Kelas</span>
+                          <span className="w-[16px] text-center font-bold text-black shrink-0">:</span>
+                          <span className="font-bold text-black flex-1">{selectedStudent.class || selectedClass}</span>
                         </div>
-                        <div className="flex">
-                          <span className="w-36 font-semibold text-slate-700 shrink-0">Periode</span>
-                          <span className="font-bold text-black">: {periodeText}</span>
+                        <div className="flex items-center">
+                          <span className="w-[144px] font-semibold text-slate-700 shrink-0">Periode</span>
+                          <span className="w-[16px] text-center font-bold text-black shrink-0">:</span>
+                          <span className="font-bold text-black flex-1">{periodeText}</span>
                         </div>
                       </div>
 
-                      {/* Sebelah Kanan (Semester & Tahun Pelajaran) */}
+                      {/* Sebelah Kanan (Semester & Tahun Pelajaran - Titik Dua Simetris & Presisi) */}
                       <div className="space-y-1 min-w-[240px] text-left">
-                        <div className="flex">
-                          <span className="w-32 font-semibold text-slate-700 shrink-0">Semester</span>
-                          <span className="font-bold text-black">: {profileData?.semester || '-'}</span>
+                        <div className="flex items-center">
+                          <span className="w-[125px] font-semibold text-slate-700 shrink-0">Semester</span>
+                          <span className="w-[16px] text-center font-bold text-black shrink-0">:</span>
+                          <span className="font-bold text-black flex-1">{profileData?.semester || '-'}</span>
                         </div>
-                        <div className="flex">
-                          <span className="w-32 font-semibold text-slate-700 shrink-0">Tahun Pelajaran</span>
-                          <span className="font-bold text-black">: {profileData?.tahunPelajaran || '-'}</span>
+                        <div className="flex items-center">
+                          <span className="w-[125px] font-semibold text-slate-700 shrink-0">Tahun Pelajaran</span>
+                          <span className="w-[16px] text-center font-bold text-black shrink-0">:</span>
+                          <span className="font-bold text-black flex-1">{profileData?.tahunPelajaran || '-'}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* 4. Tabel Presensi Persiswa */}
-                    {/* Kolom: No | Tanggal Presensi | Keterangan (warna hitam) | Persentase (di-merge) */}
+                    {/* Kolom: No | Tanggal Presensi | Keterangan (warna hitam) | Persentase (di-merge rapih presisi dan simetris) */}
                     <div className="overflow-x-auto mt-4">
                       <table className="w-full text-xs sm:text-[13px] border-collapse border border-black table-fixed">
                         <colgroup>
@@ -1183,9 +1333,14 @@ export default function StudentAttendanceRecapView({
                             {idx === 0 && (
                               <td
                                 rowSpan={recapRows.length}
-                                className="border border-black py-2 px-2 text-center align-middle font-bold text-sm sm:text-base bg-slate-50/50 text-black"
+                                className="border border-black p-2 text-center align-middle font-bold text-base bg-slate-50/70 text-black select-none"
+                                style={{ verticalAlign: 'middle', textAlign: 'center' }}
                               >
-                                {recapStats.persentase}%
+                                <div className="flex flex-col items-center justify-center h-full min-h-[48px] text-center leading-normal">
+                                  <span className="text-base sm:text-lg font-black text-black tracking-wide">
+                                    {recapStats.persentase}%
+                                  </span>
+                                </div>
                               </td>
                             )}
                           </tr>
@@ -1247,16 +1402,16 @@ export default function StudentAttendanceRecapView({
                     </div>
                   ) : null}
 
-                  {/* Right Signer (Wali Kelas) - Posisikan pasti di sebelah kanan */}
+                  {/* Right Signer (Wali Kelas / Guru Mapel) - Posisikan pasti di sebelah kanan */}
                   <div className="space-y-1 text-center min-w-[220px] ml-auto">
                     <p className="text-black">Cililin, {format(new Date(), 'dd MMMM yyyy', { locale: id })}</p>
-                    <p className="font-medium text-black">Wali Kelas {selectedStudent.class || selectedClass}</p>
+                    <p className="font-medium text-black">{rightSignerTitle}</p>
                     <div className="h-16"></div>
                     <p className="font-bold underline text-black">
-                      {profileData?.namaGuruWali || profileData?.namaGuruMapel || '(________________________)'}
+                      {teacherName}
                     </p>
                     <p className="text-[11px] text-slate-700">
-                      {profileData?.nipGuruWali ? `NIP. ${profileData.nipGuruWali}` : (profileData?.nipGuruMapel ? `NIP. ${profileData.nipGuruMapel}` : 'NIP. -')}
+                      {teacherNIP || 'NIP. -'}
                     </p>
                   </div>
                 </div>
