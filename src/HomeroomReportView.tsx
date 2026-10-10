@@ -23,7 +23,8 @@ import {
   Check,
   Plus,
   Eye,
-  Sliders
+  Sliders,
+  ArrowLeft
 } from 'lucide-react';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, serverTimestamp, Firestore } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
@@ -32,9 +33,11 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { kopSuratBase64 } from './kop-surat-b64';
 import { compareClasses } from './classSortUtils';
+import StudentAttendanceRecapView from './StudentAttendanceRecapView';
 
 interface Student {
   id: string;
+  nisn?: string;
   name: string;
   class: string;
 }
@@ -440,10 +443,13 @@ export default function HomeroomReportView({
   });
 
   useEffect(() => {
-    if (isWaliKelas && profileData?.waliKelasClass) {
-      setSelectedClass(profileData.waliKelasClass);
-    } else if (!selectedClass && effectiveClassList.length > 0) {
-      setSelectedClass(effectiveClassList[0]);
+    // Hanya atur selectedClass awal jika belum ada kelas yang dipilih sama sekali
+    if (!selectedClass) {
+      if (isWaliKelas && profileData?.waliKelasClass) {
+        setSelectedClass(profileData.waliKelasClass);
+      } else if (effectiveClassList.length > 0) {
+        setSelectedClass(effectiveClassList[0]);
+      }
     }
   }, [isWaliKelas, profileData?.waliKelasClass, effectiveClassList, selectedClass]);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().substring(0, 10));
@@ -1488,6 +1494,61 @@ export default function HomeroomReportView({
     setShowPreviewModal(false);
   };
 
+  if (selectedClass === 'rekap_siswa') {
+    return (
+      <div className="max-w-5xl mx-auto space-y-6 pb-12">
+        {/* Navigasi Pilihan Rekapitulasi Wali Kelas - Tombol Kelas & Rekap Persiswa Tetap Muncul */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+              Pilihan Laporan Wali Kelas
+            </span>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {profileData?.waliKelasClass && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedClass(profileData.waliKelasClass || '')}
+                  className="py-2 px-3.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer text-slate-700 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 flex items-center gap-2 shadow-xs border border-slate-200/60"
+                  title={`Pindah ke Laporan Tindak Lanjut Kelas ${profileData.waliKelasClass}`}
+                >
+                  <Building2 className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>🏫 Kelas {profileData.waliKelasClass} (Laporan Binaan)</span>
+                </button>
+              )}
+              <button
+                type="button"
+                className="py-2 px-3.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer bg-amber-500 text-white shadow-xs flex items-center gap-2"
+              >
+                <UserIcon className="w-4 h-4 shrink-0 text-white" />
+                <span>👤 Rekap Persiswa (Aktif)</span>
+              </button>
+            </div>
+          </div>
+
+          {profileData?.waliKelasClass && (
+            <button
+              type="button"
+              onClick={() => setSelectedClass(profileData.waliKelasClass || '')}
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer self-start sm:self-auto"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Kembali ke Kelas {profileData.waliKelasClass}
+            </button>
+          )}
+        </div>
+
+        <StudentAttendanceRecapView
+          students={students}
+          attendanceSessions={attendanceSessions}
+          profileData={profileData}
+          defaultClass={profileData?.waliKelasClass || effectiveClassList[0]}
+          showToast={showToast}
+          onBackToClassReport={() => setSelectedClass(profileData?.waliKelasClass || effectiveClassList[0] || '')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
       {/* CARD 1: FORM PENCATATAN TINDAK LANJUT SISWA */}
@@ -1595,22 +1656,65 @@ export default function HomeroomReportView({
               </label>
               {isWaliKelas && profileData?.waliKelasClass && (
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                  Kelas Binaan Anda
+                  Wali Kelas {profileData.waliKelasClass}
                 </span>
               )}
             </div>
+
+            {isWaliKelas && profileData?.waliKelasClass && (
+              <div className="grid grid-cols-2 gap-1.5 mb-1.5 bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setSelectedClass(profileData.waliKelasClass || '')}
+                  className={`py-1.5 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    selectedClass !== 'rekap_siswa'
+                      ? 'bg-amber-500 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  🏫 Kelas {profileData.waliKelasClass}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedClass('rekap_siswa')}
+                  className={`py-1.5 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    selectedClass === 'rekap_siswa'
+                      ? 'bg-amber-500 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  👤 Rekap Persiswa
+                </button>
+              </div>
+            )}
+
             <select 
               value={selectedClass} 
               onChange={(e) => setSelectedClass(e.target.value)}
-              disabled={isWaliKelas && !!profileData?.waliKelasClass}
-              className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 font-bold focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-xs disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 font-bold focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-xs"
             >
-              {effectiveClassList.length === 0 ? (
-                <option value="" disabled>-- Tidak ada kelas --</option>
+              {isWaliKelas ? (
+                <>
+                  {profileData?.waliKelasClass && (
+                    <option value={profileData.waliKelasClass}>
+                      {profileData.waliKelasClass} (Kelas yang Diwali Kelasi)
+                    </option>
+                  )}
+                  <option value="rekap_siswa">
+                    👤 Rekap Persiswa {profileData?.waliKelasClass ? `(${profileData.waliKelasClass})` : ''}
+                  </option>
+                </>
               ) : (
-                effectiveClassList.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))
+                <>
+                  {effectiveClassList.length === 0 ? (
+                    <option value="" disabled>-- Tidak ada kelas --</option>
+                  ) : (
+                    effectiveClassList.map(cls => (
+                      <option key={cls} value={cls}>{cls}</option>
+                    ))
+                  )}
+                  <option value="rekap_siswa">👤 Rekap Persiswa</option>
+                </>
               )}
             </select>
             {isWaliKelas && !profileData?.waliKelasClass && (
@@ -2553,12 +2657,35 @@ export default function HomeroomReportView({
 
               {/* Modal Body: PDF Viewer */}
               <div className="flex-1 p-3 sm:p-4 bg-slate-100 overflow-hidden flex flex-col">
+                <div className="mb-2 sm:hidden px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-[11px] text-amber-800">
+                  <span>📱 Di browser HP, jika tampilan PDF kosong:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (previewPdfUrl) {
+                        const a = document.createElement('a');
+                        a.href = previewPdfUrl;
+                        a.download = previewFileName || `Laporan_Wali_Kelas_${selectedClass}_${currentMonth}.pdf`;
+                        a.click();
+                      }
+                    }}
+                    className="font-bold underline text-amber-900 ml-2 whitespace-nowrap cursor-pointer"
+                  >
+                    Unduh / Buka PDF
+                  </button>
+                </div>
                 <div className="w-full flex-1 bg-white rounded-xl shadow-inner border border-slate-300 overflow-hidden">
-                  <iframe
-                    src={previewPdfUrl}
+                  <object
+                    data={previewPdfUrl}
+                    type="application/pdf"
                     className="w-full h-full min-h-[50vh] sm:min-h-[62vh]"
-                    title="Pratinjau PDF Laporan Wali Kelas"
-                  />
+                  >
+                    <iframe
+                      src={previewPdfUrl}
+                      className="w-full h-full min-h-[50vh] sm:min-h-[62vh]"
+                      title="Pratinjau PDF Laporan Wali Kelas"
+                    />
+                  </object>
                 </div>
               </div>
 

@@ -328,6 +328,8 @@ export default function StudentGradesView({
         setWeightASAS(data.asas ?? 20);
         safeSetLocalStorage(storageKey, JSON.stringify(data));
       }
+    }, (err) => {
+      console.warn('Firestore gradeWeights snapshot warning:', err);
     });
 
     return () => unsubscribe();

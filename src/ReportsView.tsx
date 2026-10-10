@@ -13,13 +13,17 @@ import {
   ClipboardList,
   Calendar,
   Pencil,
-  Eye
+  Eye,
+  Building2,
+  User as UserIcon,
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { kopSuratBase64 } from './kop-surat-b64';
 import HomeroomReportView from './HomeroomReportView';
+import StudentAttendanceRecapView from './StudentAttendanceRecapView';
 import StudentGradesView from './StudentGradesView';
 import { compareClasses, compareStudentsByClass } from './classSortUtils';
 import type { Firestore } from 'firebase/firestore';
@@ -1179,6 +1183,57 @@ export default function ReportsView({
             initialSubTab={gradesSubTab}
           />
         )
+      ) : selectedClass === 'rekap_siswa' ? (
+        <div className="space-y-6">
+          {/* Navigasi Pilihan Rekapitulasi Presensi - Tombol Kelas & Rekap Persiswa Tetap Muncul */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Pilihan Rekapitulasi Presensi
+              </span>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {profileData?.waliKelasClass && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedClass(profileData.waliKelasClass!)}
+                    className="py-2 px-3.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer text-slate-700 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 flex items-center gap-2 shadow-xs border border-slate-200/60"
+                    title={`Pindah ke Laporan Rekap Presensi Kelas ${profileData.waliKelasClass}`}
+                  >
+                    <Building2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>🏫 Kelas {profileData.waliKelasClass} (Laporan Kelas)</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="py-2 px-3.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer bg-emerald-600 text-white shadow-xs flex items-center gap-2"
+                >
+                  <UserIcon className="w-4 h-4 shrink-0 text-white" />
+                  <span>👤 Rekap Persiswa (Aktif)</span>
+                </button>
+              </div>
+            </div>
+
+            {profileData?.waliKelasClass && (
+              <button
+                type="button"
+                onClick={() => setSelectedClass(profileData.waliKelasClass!)}
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-2.5 rounded-xl transition-all cursor-pointer self-start sm:self-auto"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Kembali ke Kelas {profileData.waliKelasClass}
+              </button>
+            )}
+          </div>
+
+          <StudentAttendanceRecapView
+            students={students}
+            attendanceSessions={attendanceSessions}
+            profileData={profileData}
+            defaultClass={profileData?.waliKelasClass || effectiveClassList[0]}
+            showToast={showToast}
+            onBackToClassReport={() => setSelectedClass(profileData?.waliKelasClass || effectiveClassList[0] || '')}
+          />
+        </div>
       ) : (
         /* Frame 1: Laporan Presensi Siswa */
         <>
@@ -1225,24 +1280,67 @@ export default function ReportsView({
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Kelas</label>
                   {isWaliKelas && profileData?.waliKelasClass && (
                     <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      Kelas Binaan
+                      Wali Kelas {profileData.waliKelasClass}
                     </span>
                   )}
                 </div>
+
+                {isWaliKelas && profileData?.waliKelasClass && (
+                  <div className="grid grid-cols-2 gap-1.5 mb-2.5 bg-slate-100 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedClass(profileData.waliKelasClass || '')}
+                      className={`py-2 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        selectedClass !== 'rekap_siswa'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      🏫 Kelas {profileData.waliKelasClass}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedClass('rekap_siswa')}
+                      className={`py-2 px-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        selectedClass === 'rekap_siswa'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      👤 Rekap Persiswa
+                    </button>
+                  </div>
+                )}
+
                 <select 
-                  className="w-full p-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed"
+                  className="w-full p-3 bg-slate-50 border-2 border-slate-400 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-colors font-bold text-slate-800 text-xs"
                   value={selectedClass}
                   onChange={(e) => setSelectedClass(e.target.value)}
-                  disabled={isWaliKelas && !!profileData?.waliKelasClass}
                 >
-                  {!isWaliKelas && <option value="">-- Pilih Kelas --</option>}
-                  {!isWaliKelas && <option value="all">Semua Kelas</option>}
-                  {effectiveClassList.slice().sort(compareClasses).map(c => <option key={c} value={c}>{c}</option>)}
+                  {isWaliKelas ? (
+                    <>
+                      {profileData?.waliKelasClass && (
+                        <option value={profileData.waliKelasClass}>
+                          {profileData.waliKelasClass} (Kelas yang Diwali Kelasi)
+                        </option>
+                      )}
+                      <option value="rekap_siswa">
+                        👤 Rekap Persiswa {profileData?.waliKelasClass ? `(${profileData.waliKelasClass})` : ''}
+                      </option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="">-- Pilih Kelas --</option>
+                      <option value="all">Semua Kelas</option>
+                      {effectiveClassList.slice().sort(compareClasses).map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="rekap_siswa">👤 Rekap Persiswa</option>
+                    </>
+                  )}
                 </select>
                 {isWaliKelas && profileData?.waliKelasClass && (
                   <p className="text-[11px] text-emerald-800 font-bold mt-1.5 flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    Hanya menampilkan kelas binaan Anda ({profileData.waliKelasClass})
+                    Pilih kelas binaan Anda ({profileData.waliKelasClass}) atau Rekap Persiswa.
                   </p>
                 )}
               </div>

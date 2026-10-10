@@ -136,9 +136,23 @@
         }
       },
       "required": ["fullname", "username", "password", "configText"]
+    },
+    "test_connection": {
+      "title": "Test Connection",
+      "description": "Health check document for testing firestore connectivity",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      }
     }
   },
   "firestore": {
+    "/test/{docId}": {
+      "schema": "test_connection",
+      "description": "Health check document for testing firestore connectivity"
+    },
     "/students/{studentId}": {
       "schema": "student",
       "description": "Collection of SMAN 1 Cililin students"

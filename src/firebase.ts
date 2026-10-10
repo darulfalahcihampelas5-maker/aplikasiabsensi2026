@@ -6,7 +6,9 @@ import {
   persistentLocalCache, 
   persistentMultipleTabManager,
   memoryLocalCache,
-  Firestore 
+  Firestore,
+  doc,
+  getDocFromServer
 } from 'firebase/firestore';
 import * as firebaseConfigRaw from '../firebase-applet-config.json';
 
@@ -18,21 +20,19 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 let firestoreDb: Firestore;
 try {
   firestoreDb = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
     })
   }, firebaseConfig.firestoreDatabaseId);
 } catch {
   try {
-    firestoreDb = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+    firestoreDb = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      localCache: memoryLocalCache()
+    }, firebaseConfig.firestoreDatabaseId);
   } catch {
-    try {
-      firestoreDb = initializeFirestore(app, {
-        localCache: memoryLocalCache()
-      }, firebaseConfig.firestoreDatabaseId);
-    } catch {
-      firestoreDb = getFirestore(app);
-    }
+    firestoreDb = getFirestore(app, firebaseConfig.firestoreDatabaseId);
   }
 }
 
@@ -40,6 +40,17 @@ export const db = firestoreDb;
 export const dbDefault = firestoreDb;
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+export async function testConnection() {
+  try {
+    await getDocFromServer(doc(firestoreDb, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration.");
+    }
+  }
+}
+testConnection();
 
 
 export enum OperationType {
