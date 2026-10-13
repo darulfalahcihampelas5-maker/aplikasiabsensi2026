@@ -381,7 +381,7 @@ export default function StudentAttendanceRecapView({
       throw new Error('Siswa belum dipilih');
     }
 
-    const doc = new jsPDF({ orientation: 'portrait', format: 'a4' });
+    const doc = new jsPDF({ orientation: 'portrait', format: [215, 330] });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -465,7 +465,7 @@ export default function StudentAttendanceRecapView({
     doc.setFont('helvetica', 'normal');
 
     // 4. Tabel Presensi Persiswa:
-    // Kolom: No | Tanggal Presensi | Keterangan | Persentase (di-merge sesuai jumlah baris per halaman)
+    // Kolom: No | Tanggal Presensi | Keterangan | Persentase
     const tableStartY = row4Y + 6;
     const headers = [
       'No', 
@@ -474,11 +474,9 @@ export default function StudentAttendanceRecapView({
       'Persentase'
     ];
 
-    // Pembagian rowSpan presisi agar tidak loncat ke halaman baru sebelum halaman 1 penuh:
-    // Pada A4 portrait, halaman 1 mampu menampung hingga 26 baris sebelum batas margin bawah.
-    // Halaman berikutnya mampu menampung hingga 38 baris.
-    const PAGE_1_CAPACITY = 26;
-    const PAGE_N_CAPACITY = 38;
+    // Pembagian rowSpan per halaman agar persentase ter-merge dengan rapih di setiap lembar/halaman tanpa loncat:
+    const PAGE_1_CAPACITY = 22;
+    const PAGE_N_CAPACITY = 45;
     const spanBlocks: { startIndex: number; spanLength: number }[] = [];
     if (recapRows.length > 0) {
       if (recapRows.length <= PAGE_1_CAPACITY) {
@@ -1160,7 +1158,7 @@ export default function StudentAttendanceRecapView({
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                   <span className="text-xs font-bold text-slate-200">
-                    Pratinjau A4 Portrait
+                    Pratinjau Legal Portrait
                   </span>
                 </div>
 
@@ -1213,17 +1211,17 @@ export default function StudentAttendanceRecapView({
                 <div
                   className="w-full flex justify-center py-2 transition-all duration-150"
                   style={{
-                    minWidth: `${Math.round(794 * zoomScale)}px`,
-                    minHeight: `${Math.round(1123 * zoomScale)}px`,
+                    minWidth: `${Math.round(816 * zoomScale)}px`,
+                    minHeight: `${Math.round(1344 * zoomScale)}px`,
                   }}
                 >
-                  {/* LEMBAR DOKUMEN CETAK RESMI (Standar A4 Portrait: 210mm x 297mm ≈ 794px x 1123px, Margin 14mm ≈ 53px, Margin Atas 8mm ≈ 30px) */}
+                  {/* LEMBAR DOKUMEN CETAK RESMI (Standar Legal/F4 Portrait: 215.9mm x 355.6mm ≈ 816px x 1344px, Margin 14mm ≈ 53px, Margin Atas 8mm ≈ 30px) */}
                   <div
                     style={{
                       transform: `scale(${zoomScale})`,
                       transformOrigin: 'top center',
                     }}
-                    className="w-[794px] min-w-[794px] min-h-[1123px] bg-white px-[53px] pt-[30px] pb-[48px] rounded-xl shadow-2xl border border-slate-300 text-slate-900 font-sans shrink-0 transition-transform duration-150 print:shadow-none print:border-none print:p-0"
+                    className="w-[816px] min-w-[816px] min-h-[1344px] bg-white px-[53px] pt-[30px] pb-[48px] rounded-xl shadow-2xl border border-slate-300 text-slate-900 font-sans shrink-0 transition-transform duration-150 print:shadow-none print:border-none print:p-0"
                   >
                     {/* 1. Kop Surat Resmi Sekolah (Proporsi & ukuran presisi sama seperti dokumen PDF yang diunduh: 182mm x 42.8mm) */}
                     <div className="w-full text-center">
