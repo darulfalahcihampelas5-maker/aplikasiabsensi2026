@@ -465,7 +465,7 @@ export default function StudentAttendanceRecapView({
     doc.setFont('helvetica', 'normal');
 
     // 4. Tabel Presensi Persiswa:
-    // Kolom: No | Tanggal Presensi | Keterangan | Persentase
+    // Kolom: No (14mm) | Tanggal Presensi (98mm) | Keterangan (40mm) | Persentase (35mm) = 187mm (Presisi & Simetris x=14 hingga x=201)
     const tableStartY = row4Y + 6;
     const headers = [
       'No', 
@@ -474,86 +474,56 @@ export default function StudentAttendanceRecapView({
       'Persentase'
     ];
 
-    // Pembagian rowSpan per halaman agar persentase ter-merge dengan rapih di setiap lembar/halaman tanpa loncat:
-    const PAGE_1_CAPACITY = 22;
-    const PAGE_N_CAPACITY = 45;
-    const spanBlocks: { startIndex: number; spanLength: number }[] = [];
-    if (recapRows.length > 0) {
-      if (recapRows.length <= PAGE_1_CAPACITY) {
-        spanBlocks.push({ startIndex: 0, spanLength: recapRows.length });
-      } else {
-        spanBlocks.push({ startIndex: 0, spanLength: PAGE_1_CAPACITY });
-        let remaining = recapRows.length - PAGE_1_CAPACITY;
-        let currStart = PAGE_1_CAPACITY;
-        while (remaining > 0) {
-          const spanLen = Math.min(remaining, PAGE_N_CAPACITY);
-          spanBlocks.push({ startIndex: currStart, spanLength: spanLen });
-          currStart += spanLen;
-          remaining -= spanLen;
-        }
+    // Pembagian baris per lembar (halaman):
+    // 1 lembar ukuran kertas = 1 informasi persentase kehadiran (ter-merge rapi di setiap lembar).
+    // Halaman 1 memuat kop surat, judul, dan data siswa: kapasitas aman 26 baris jika total data <= 26 baris, atau 25 baris jika multi-halaman.
+    // Halaman berikutnya memuat hingga 30 baris per lembar.
+    const chunks: typeof recapRows[] = [];
+    if (recapRows.length === 0) {
+      chunks.push([]);
+    } else {
+      const p1Cap = recapRows.length <= 26 ? recapRows.length : 25;
+      chunks.push(recapRows.slice(0, p1Cap));
+      let start = p1Cap;
+      while (start < recapRows.length) {
+        const end = Math.min(start + 30, recapRows.length);
+        chunks.push(recapRows.slice(start, end));
+        start = end;
       }
     }
 
-    const body = recapRows.map((r, idx) => {
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      const rowArr: any[] = [
-        r.no.toString(),
-        r.formattedDate,
-        r.status
-      ];
-      const block = spanBlocks.find(b => b.startIndex === idx);
-      if (block) {
-        rowArr.push({
-          content: `${recapStats.persentase}%`,
-          rowSpan: block.spanLength,
-          styles: { 
-            halign: 'center', 
-            valign: 'middle', 
-            fontStyle: 'bold', 
-            fontSize: 10,
-            fillColor: [250, 250, 250],
-            textColor: [0, 0, 0],
-            lineWidth: 0.2,
-            lineColor: [0, 0, 0]
-          }
-        });
-      }
-      return rowArr;
-    });
-
-    const autoTableOptions = {
-      startY: tableStartY,
-      head: [headers],
-      body: body,
+    const baseTableOptions = {
       theme: 'grid' as const,
-      rowPageBreak: 'auto' as const,
-      pageBreak: 'auto' as const,
-      margin: { left: 14, right: 14, top: 18, bottom: 14 },
+      margin: { left: 14, right: 14, top: 16, bottom: 14 },
       headStyles: {
         fillColor: [240, 240, 240],
         textColor: 0,
         fontStyle: 'bold',
         halign: 'center',
-        lineWidth: 0.2,
+        lineWidth: 0.18,
         lineColor: [0, 0, 0],
         fontSize: 9
       },
       styles: {
         fontSize: 8.5,
         cellPadding: 2.2,
-        lineWidth: 0.2,
+        lineWidth: 0.18,
         lineColor: [0, 0, 0],
         textColor: 0,
         valign: 'middle' as const
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 14 },
-        1: { halign: 'left', cellWidth: 96 },
-        2: { halign: 'center', cellWidth: 42 },
-        3: { halign: 'center', valign: 'middle', cellWidth: 30 }
+        1: { halign: 'left', cellWidth: 98 },
+        2: { halign: 'center', cellWidth: 40 },
+        3: { halign: 'center', valign: 'middle', cellWidth: 35 }
       },
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       didParseCell: function(cellData: any) {
+        // Border normal standar (0.18mm) rapi dan presisi
+        cellData.cell.styles.lineWidth = 0.18;
+        cellData.cell.styles.lineColor = [0, 0, 0];
+
         if (cellData.section === 'body') {
           if (cellData.column.index === 0 || cellData.column.index === 2 || cellData.column.index === 3) {
             cellData.cell.styles.halign = 'center';
@@ -571,17 +541,75 @@ export default function StudentAttendanceRecapView({
             cellData.cell.styles.valign = 'middle';
           }
         }
+      },
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      didDrawCell: function(cellData: any) {
+        // Penguatan garis tepi kanan dengan ketebalan normal agar tidak hilang di pembaca PDF tertentu
+        if (cellData.column.index === 3) {
+          const xRight = cellData.cell.x + cellData.cell.width;
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.18);
+          doc.line(xRight, cellData.cell.y, xRight, cellData.cell.y + cellData.cell.height);
+        }
       }
     };
 
-    if (typeof autoTable === 'function') {
+    // Render tabel per lembar:
+    chunks.forEach((chunk, chunkIdx) => {
+      if (chunkIdx > 0) {
+        doc.addPage();
+        // Sub-judul lanjutan di lembar berikutnya agar rapi dan informatif
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Lanjutan Rekapitulasi Presensi - ${selectedStudent.name} (${selectedStudent.class || selectedClass}) - Lembar ${chunkIdx + 1}`, 14, 12);
+        doc.setTextColor(0, 0, 0);
+      }
+
+      const body = chunk.length === 0 ? [[
+        '-', 'Belum ada catatan presensi pada periode yang dipilih', '-', '-'
+      ]] : chunk.map((r, idx) => {
+        const rowArr: (string | Record<string, unknown>)[] = [
+          r.no.toString(),
+          r.formattedDate,
+          r.status
+        ];
+        if (idx === 0) {
+          rowArr.push({
+            content: `${recapStats.persentase}%`,
+            rowSpan: chunk.length,
+            styles: { 
+              halign: 'center', 
+              valign: 'middle', 
+              fontStyle: 'bold', 
+              fontSize: 10,
+              fillColor: [250, 250, 250],
+              textColor: [0, 0, 0],
+              lineWidth: 0.18,
+              lineColor: [0, 0, 0]
+            }
+          });
+        }
+        return rowArr;
+      });
+
+      const chunkStartY = chunkIdx === 0 ? tableStartY : 16;
+      const options = {
+        ...baseTableOptions,
+        startY: chunkStartY,
+        head: [headers],
+        body: body
+      };
+
+      if (typeof autoTable === 'function') {
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        autoTable(doc, options as any);
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      autoTable(doc, autoTableOptions as any);
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    } else if (typeof (doc as any).autoTable === 'function') {
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      (doc as any).autoTable(autoTableOptions as any);
-    }
+      } else if (typeof (doc as any).autoTable === 'function') {
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        (doc as any).autoTable(options as any);
+      }
+    });
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     const tableFinalY = (doc as any).lastAutoTable?.finalY || 100;
@@ -608,6 +636,7 @@ export default function StudentAttendanceRecapView({
 
     const statsTableOptions = {
       startY: statsY,
+      margin: { left: 14, right: 14 },
       head: [statsHeaders],
       body: statsBody,
       theme: 'grid' as const,
@@ -616,17 +645,31 @@ export default function StudentAttendanceRecapView({
         textColor: 0,
         fontStyle: 'bold',
         halign: 'center',
-        lineWidth: 0.2,
+        lineWidth: 0.18,
         lineColor: [0, 0, 0],
         fontSize: 8.5
       },
       styles: {
         fontSize: 8.5,
         cellPadding: 2.2,
-        lineWidth: 0.2,
+        lineWidth: 0.18,
         lineColor: [0, 0, 0],
         textColor: 0,
         halign: 'center'
+      },
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      didParseCell: function(cellData: any) {
+        cellData.cell.styles.lineWidth = 0.18;
+        cellData.cell.styles.lineColor = [0, 0, 0];
+      },
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      didDrawCell: function(cellData: any) {
+        if (cellData.column.index === 6) {
+          const xRight = cellData.cell.x + cellData.cell.width;
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.18);
+          doc.line(xRight, cellData.cell.y, xRight, cellData.cell.y + cellData.cell.height);
+        }
       }
     };
 
@@ -1158,7 +1201,7 @@ export default function StudentAttendanceRecapView({
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                   <span className="text-xs font-bold text-slate-200">
-                    Pratinjau Legal Portrait
+                    Pratinjau F4 / Legal Portrait
                   </span>
                 </div>
 
@@ -1289,8 +1332,11 @@ export default function StudentAttendanceRecapView({
 
                     {/* 4. Tabel Presensi Persiswa */}
                     {/* Kolom: No | Tanggal Presensi | Keterangan (warna hitam) | Persentase (di-merge rapih presisi dan simetris) */}
-                    <div className="overflow-x-auto mt-4">
-                      <table className="w-full text-xs sm:text-[13px] border-collapse border border-black table-fixed">
+                    <div className="overflow-x-auto mt-4 p-0.5">
+                      <table 
+                        className="w-full text-xs sm:text-[13px] table-fixed"
+                        style={{ borderCollapse: 'collapse', border: '1px solid black' }}
+                      >
                         <colgroup>
                           <col style={{ width: '7.7%' }} />
                           <col style={{ width: '52.7%' }} />
@@ -1298,25 +1344,25 @@ export default function StudentAttendanceRecapView({
                           <col style={{ width: '16.5%' }} />
                         </colgroup>
                         <thead>
-                          <tr className="bg-slate-100 text-black border-b border-black text-center font-bold">
-                            <th className="border border-black py-2 px-2 text-center">No</th>
-                            <th className="border border-black py-2 px-3 text-left">Tanggal Presensi</th>
-                            <th className="border border-black py-2 px-3 text-center">Keterangan</th>
-                            <th className="border border-black py-2 px-3 text-center">Persentase</th>
+                          <tr className="bg-slate-100 text-black text-center font-bold">
+                            <th className="py-2 px-2 text-center" style={{ border: '1px solid black' }}>No</th>
+                            <th className="py-2 px-3 text-left" style={{ border: '1px solid black' }}>Tanggal Presensi</th>
+                            <th className="py-2 px-3 text-center" style={{ border: '1px solid black' }}>Keterangan</th>
+                            <th className="py-2 px-3 text-center" style={{ border: '1px solid black' }}>Persentase</th>
                           </tr>
                         </thead>
                     <tbody>
                       {recapRows.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="border border-black py-6 text-center text-slate-500 italic">
+                          <td colSpan={4} className="py-6 text-center text-slate-500 italic" style={{ border: '1px solid black' }}>
                             Belum ada catatan presensi pada periode yang dipilih.
                           </td>
                         </tr>
                       ) : (
                         recapRows.map((row, idx) => (
                           <tr key={row.no} className="hover:bg-slate-50/60">
-                            <td className="border border-black py-1.5 px-2 text-center font-medium">{row.no}</td>
-                            <td className="border border-black py-1.5 px-3 text-black font-medium">
+                            <td className="py-1.5 px-2 text-center font-medium" style={{ border: '1px solid black' }}>{row.no}</td>
+                            <td className="py-1.5 px-3 text-black font-medium" style={{ border: '1px solid black' }}>
                               {row.formattedDate}
                               {row.meetingNumber && (
                                 <span className="text-[11px] text-slate-500 ml-1.5 font-normal">
@@ -1325,14 +1371,14 @@ export default function StudentAttendanceRecapView({
                               )}
                             </td>
                             {/* Keterangan: warna teks hitam */}
-                            <td className="border border-black py-1.5 px-3 text-center font-bold text-black">
+                            <td className="py-1.5 px-3 text-center font-bold text-black" style={{ border: '1px solid black' }}>
                               {row.status}
                             </td>
                             {idx === 0 && (
                               <td
                                 rowSpan={recapRows.length}
-                                className="border border-black p-2 text-center align-middle font-bold text-base bg-slate-50/70 text-black select-none"
-                                style={{ verticalAlign: 'middle', textAlign: 'center' }}
+                                className="p-2 text-center align-middle font-bold text-base bg-slate-50/70 text-black select-none"
+                                style={{ border: '1px solid black', verticalAlign: 'middle', textAlign: 'center' }}
                               >
                                 <div className="flex flex-col items-center justify-center h-full min-h-[48px] text-center leading-normal">
                                   <span className="text-base sm:text-lg font-black text-black tracking-wide">
@@ -1349,28 +1395,31 @@ export default function StudentAttendanceRecapView({
                 </div>
 
                 {/* 5. Tabel Rekapitulasi Statistik Kehadiran */}
-                <div className="overflow-x-auto pt-1">
-                  <table className="w-full text-xs sm:text-[12px] border-collapse border border-black text-center">
+                <div className="overflow-x-auto pt-1 p-0.5">
+                  <table 
+                    className="w-full text-xs sm:text-[12px] text-center"
+                    style={{ borderCollapse: 'collapse', border: '1px solid black' }}
+                  >
                     <thead>
-                      <tr className="bg-slate-100 font-bold border-b border-black text-black">
-                        <th className="border border-black py-1.5 px-2">Hadir (H)</th>
-                        <th className="border border-black py-1.5 px-2">Sakit (S)</th>
-                        <th className="border border-black py-1.5 px-2">Izin (I)</th>
-                        <th className="border border-black py-1.5 px-2">Alpa (A)</th>
-                        <th className="border border-black py-1.5 px-2">Dispen (D)</th>
-                        <th className="border border-black py-1.5 px-2">Total Pertemuan</th>
-                        <th className="border border-black py-1.5 px-2">Persentase %</th>
+                      <tr className="bg-slate-100 font-bold text-black">
+                        <th className="py-1.5 px-2" style={{ border: '1px solid black' }}>Hadir (H)</th>
+                        <th className="py-1.5 px-2" style={{ border: '1px solid black' }}>Sakit (S)</th>
+                        <th className="py-1.5 px-2" style={{ border: '1px solid black' }}>Izin (I)</th>
+                        <th className="py-1.5 px-2" style={{ border: '1px solid black' }}>Alpa (A)</th>
+                        <th className="py-1.5 px-2" style={{ border: '1px solid black' }}>Dispen (D)</th>
+                        <th className="py-1.5 px-2" style={{ border: '1px solid black' }}>Total Pertemuan</th>
+                        <th className="py-1.5 px-2" style={{ border: '1px solid black' }}>Persentase %</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="font-bold text-black">
-                        <td className="border border-black py-2 px-2">{recapStats.hadir} hari</td>
-                        <td className="border border-black py-2 px-2">{recapStats.sakit} hari</td>
-                        <td className="border border-black py-2 px-2">{recapStats.izin} hari</td>
-                        <td className="border border-black py-2 px-2">{recapStats.alpa} hari</td>
-                        <td className="border border-black py-2 px-2">{recapStats.dispen} hari</td>
-                        <td className="border border-black py-2 px-2">{recapStats.totalSessions} pertemuan</td>
-                        <td className="border border-black py-2 px-2">{recapStats.persentase}%</td>
+                        <td className="py-2 px-2" style={{ border: '1px solid black' }}>{recapStats.hadir} hari</td>
+                        <td className="py-2 px-2" style={{ border: '1px solid black' }}>{recapStats.sakit} hari</td>
+                        <td className="py-2 px-2" style={{ border: '1px solid black' }}>{recapStats.izin} hari</td>
+                        <td className="py-2 px-2" style={{ border: '1px solid black' }}>{recapStats.alpa} hari</td>
+                        <td className="py-2 px-2" style={{ border: '1px solid black' }}>{recapStats.dispen} hari</td>
+                        <td className="py-2 px-2" style={{ border: '1px solid black' }}>{recapStats.totalSessions} pertemuan</td>
+                        <td className="py-2 px-2" style={{ border: '1px solid black' }}>{recapStats.persentase}%</td>
                       </tr>
                     </tbody>
                   </table>
